@@ -1,11 +1,10 @@
 package com.salesSavvy.repository;
 
+import com.salesSavvy.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import com.salesSavvy.entity.Product;
 import java.util.List;
 
 @Repository
@@ -18,6 +17,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     // Find products within a price range
     List<Product> findByPriceBetween(int minPrice, int maxPrice);
+
+    // Get latest updated product
+    List<Product> findTop1ByOrderByUpdatedAtDesc();
     
     // Custom query for advanced search
     @Query("SELECT p FROM Product p WHERE " +

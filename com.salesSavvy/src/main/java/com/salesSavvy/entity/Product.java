@@ -1,5 +1,6 @@
 package com.salesSavvy.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.Column;
@@ -19,7 +20,7 @@ public class Product {
     @Column(length = 2000)
     private String description;
     private int price;
-    @Column(length = 1000)
+    @Column(length = 4000)
     private String photo;
     private String category;
 
@@ -27,6 +28,9 @@ public class Product {
     private Integer lowStockThreshold = 10;
     private Boolean inStock = true;
     private Integer salesCount = 0;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @ElementCollection
     private List<String> reviews;
@@ -84,6 +88,14 @@ public Product(Long id, String name, String description, int price, String photo
 
   public Integer getSalesCount() { return salesCount; }
   public void setSalesCount(Integer salesCount) { this.salesCount = salesCount; }
+
+  public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
 @Override
 public String toString() {

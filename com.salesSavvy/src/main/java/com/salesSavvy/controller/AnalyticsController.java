@@ -14,24 +14,17 @@ public class AnalyticsController {
     private AnalyticsService analyticsService;
 
     @GetMapping("/dashboard")
-    public ResponseEntity<Map<String, Object>> getDashboardAnalytics(
+    public ResponseEntity<?> getDashboardAnalytics(
             @RequestParam(defaultValue = "monthly") String timeRange) {
         try {
             Map<String, Object> analytics = analyticsService.getDashboardAnalytics(timeRange);
             return ResponseEntity.ok(analytics);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/sales")
-    public ResponseEntity<Map<String, Object>> getSalesAnalytics(
-            @RequestParam(defaultValue = "monthly") String timeRange) {
-        try {
-            Map<String, Object> salesData = analyticsService.getDashboardAnalytics(timeRange);
-            return ResponseEntity.ok(salesData);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            // Return a safe error response
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Unable to load analytics",
+                "message", "Please try again later"
+            ));
         }
     }
 }
