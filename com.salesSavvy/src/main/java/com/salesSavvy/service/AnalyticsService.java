@@ -22,6 +22,9 @@ public class AnalyticsService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private ActivityLogService activityLogService;
+
     public Map<String, Object> getDashboardAnalytics(String timeRange) {
         Map<String, Object> analytics = new HashMap<>();
         
@@ -199,139 +202,57 @@ public class AnalyticsService {
         }
     }
 
-    // Enhanced Recent Activities with Real Timing
+    // Enhanced Recent Activities using ActivityLog
     private List<Map<String, Object>> getRecentActivities() {
         List<Map<String, Object>> activities = new ArrayList<>();
         
         try {
-            // 1. Get real orders with proper timing
-            List<Order> recentOrders = getRecentOrdersWithValidDates(3);
-            for (Order order : recentOrders) {
+            List<com.salesSavvy.entity.ActivityLog> activityLogs = activityLogService.getRecentActivities(10);
+            
+            for (com.salesSavvy.entity.ActivityLog log : activityLogs) {
+                String icon = getActivityIcon(log.getActivityType());
+                String text = log.getDescription();
+                
                 activities.add(createActivity(
-                    "order", 
-                    "New order #" + getOrderDisplayId(order) + " placed",
-                    order.getOrderDate()
+                    log.getActivityType().toLowerCase(),
+                    text,
+                    log.getActivityTime()
                 ));
             }
             
-            // 2. Get real user registrations
-            List<Users> recentUsers = getRecentUsers(1);
-            if (!recentUsers.isEmpty()) {
-                Users latestUser = recentUsers.get(0);
-                activities.add(createActivity(
-                    "user", 
-                    "New user registered: " + latestUser.getUsername(),
-                    latestUser.getCreatedAt()
-                ));
-            }
-            
-            // 3. Get real product updates
-            List<Product> recentProducts = getRecentProducts(1);
-            if (!recentProducts.isEmpty()) {
-                Product latestProduct = recentProducts.get(0);
-                activities.add(createActivity(
-                    "product", 
-                    "Product '" + latestProduct.getName() + "' updated",
-                    latestProduct.getUpdatedAt()
-                ));
+            // If no activities found, create some sample ones
+            if (activities.isEmpty()) {
+                return getFallbackActivities();
             }
             
         } catch (Exception e) {
-            // Use actual current time for fallback activities
-            return getRealTimeFallbackActivities();
+            System.err.println("Error fetching activities: " + e.getMessage());
+            return getFallbackActivities();
         }
         
-        return sortAndLimitActivities(activities, 4);
+        return activities;
     }
 
-    private List<Order> getRecentOrdersWithValidDates(int limit) {
-        try {
-            List<Order> allOrders = orderRepository.findAll();
-            return allOrders.stream()
-                    .filter(order -> order != null && order.getOrderDate() != null)
-                    .sorted((a, b) -> b.getOrderDate().compareTo(a.getOrderDate()))
-                    .limit(limit)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            return new ArrayList<>();
+    private String getActivityIcon(String activityType) {
+        switch (activityType) {
+            case "USER_REGISTERED":
+                return "👤";
+            case "ORDER_PLACED":
+                return "📦";
+            case "PRODUCT_ADDED":
+            case "PRODUCT_UPDATED":
+                return "📊";
+            case "USER_LOGIN":
+                return "🔐";
+            case "REVIEW_ADDED":
+                return "⭐";
+            case "CART_UPDATED":
+                return "🛒";
+            case "WISHLIST_UPDATED":
+                return "❤️";
+            default:
+                return "📝";
         }
-    }
-
-    private List<Users> getRecentUsers(int limit) {
-        try {
-            List<Users> allUsers = usersRepository.findAll();
-            return allUsers.stream()
-                    .filter(user -> user != null && user.getCreatedAt() != null)
-                    .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
-                    .limit(limit)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-    }
-
-    private List<Product> getRecentProducts(int limit) {
-        try {
-            List<Product> allProducts = productRepository.findAll();
-            return allProducts.stream()
-                    .filter(product -> product != null && product.getUpdatedAt() != null)
-                    .sorted((a, b) -> b.getUpdatedAt().compareTo(a.getUpdatedAt()))
-                    .limit(limit)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-    }
-
-    private String getOrderDisplayId(Order order) {
-        if (order.getOrderId() != null && !order.getOrderId().trim().isEmpty()) {
-            return order.getOrderId();
-        }
-        return String.valueOf(order.getId());
-    }
-
-    private List<Map<String, Object>> getRealTimeFallbackActivities() {
-        List<Map<String, Object>> activities = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-        
-        // Create realistic fallback activities based on actual system state
-        long userCount = usersRepository.count();
-        long orderCount = orderRepository.count();
-        long productCount = productRepository.count();
-        
-        activities.add(createActivity("system", "SalesSavvy analytics initialized", now));
-        
-        if (orderCount > 0) {
-            activities.add(createActivity("order", orderCount + " orders processed in system", now.minusHours(2)));
-        }
-        
-        if (userCount > 0) {
-            activities.add(createActivity("user", userCount + " users registered", now.minusHours(4)));
-        }
-        
-        if (productCount > 0) {
-            activities.add(createActivity("product", productCount + " products in catalog", now.minusHours(6)));
-        }
-        
-        return sortAndLimitActivities(activities, 4);
-    }
-
-    private List<Map<String, Object>> sortAndLimitActivities(List<Map<String, Object>> activities, int limit) {
-        return activities.stream()
-                .sorted((a, b) -> {
-                    LocalDateTime timeA = (LocalDateTime) a.get("timestamp");
-                    LocalDateTime timeB = (LocalDateTime) b.get("timestamp");
-                    return timeB.compareTo(timeA); // Most recent first
-                })
-                .limit(limit)
-                .map(activity -> {
-                    Map<String, Object> cleanActivity = new HashMap<>();
-                    cleanActivity.put("type", activity.get("type"));
-                    cleanActivity.put("text", activity.get("text"));
-                    cleanActivity.put("time", activity.get("time"));
-                    return cleanActivity;
-                })
-                .collect(Collectors.toList());
     }
 
     private Map<String, Object> createActivity(String type, String text, LocalDateTime timestamp) {
@@ -353,12 +274,10 @@ public class AnalyticsService {
             LocalDateTime now = LocalDateTime.now();
             Duration duration = Duration.between(dateTime, now);
             
-            long seconds = duration.getSeconds();
+            long seconds = Math.abs(duration.getSeconds());
             long minutes = seconds / 60;
             long hours = minutes / 60;
             long days = hours / 24;
-            long weeks = days / 7;
-            long months = days / 30;
             
             if (seconds < 60) {
                 return "Just now";
@@ -368,10 +287,15 @@ public class AnalyticsService {
                 return hours + (hours == 1 ? " hour ago" : " hours ago");
             } else if (days < 7) {
                 return days + (days == 1 ? " day ago" : " days ago");
-            } else if (weeks < 4) {
+            } else if (days < 30) {
+                long weeks = days / 7;
                 return weeks + (weeks == 1 ? " week ago" : " weeks ago");
-            } else {
+            } else if (days < 365) {
+                long months = days / 30;
                 return months + (months == 1 ? " month ago" : " months ago");
+            } else {
+                long years = days / 365;
+                return years + (years == 1 ? " year ago" : " years ago");
             }
         } catch (Exception e) {
             return "Recently";

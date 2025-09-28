@@ -5,6 +5,7 @@ import com.salesSavvy.repository.ReviewRepository;
 import com.salesSavvy.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,12 @@ public class ReviewServiceImpl implements ReviewService {
     
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private ActivityLogService activityLogService;
+
+    @Autowired
+    private HttpServletRequest request;
     
     @Override
     public Review addReview(Review review) {
@@ -31,7 +38,19 @@ public class ReviewServiceImpl implements ReviewService {
             review.setVerifiedPurchase(hasPurchased);
         }
         
-        return reviewRepository.save(review);
+        Review savedReview = reviewRepository.save(review);
+        
+        // Log the activity
+        activityLogService.logActivity(
+            ActivityLogService.REVIEW_ADDED,
+            "Review added for product ID: " + savedReview.getProductId() + " by " + savedReview.getUsername(),
+            savedReview.getUsername(),
+            savedReview.getId().toString(),
+            "REVIEW",
+            request
+        );
+        
+        return savedReview;
     }
     
     @Override
@@ -54,6 +73,16 @@ public class ReviewServiceImpl implements ReviewService {
         }
         
         reviewRepository.delete(review);
+
+        // Log the activity
+        activityLogService.logActivity(
+            ActivityLogService.REVIEW_ADDED, // We can create REVIEW_DELETED if needed
+            "Review deleted for product ID: " + review.getProductId() + " by " + review.getUsername(),
+            review.getUsername(),
+            review.getId().toString(),
+            "REVIEW"
+        );
+        
         return true;
     }
     

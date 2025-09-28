@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.salesSavvy.entity.Product;
 import com.salesSavvy.exception.ProductNotFoundException;
 import com.salesSavvy.repository.ProductRepository;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 @Transactional
@@ -19,11 +20,28 @@ public class ProductServiceImplementation implements ProductService {
     @Autowired
     ProductRepository repo;
 
+    @Autowired
+    private ActivityLogService activityLogService;
+
+    @Autowired
+    private HttpServletRequest request;
+
     @Override
     public String addProduct(Product product) {
         try {
             validateProduct(product);
-            repo.save(product);
+            Product savedProduct = repo.save(product);
+            
+            // Log the activity
+            activityLogService.logActivity(
+                ActivityLogService.PRODUCT_ADDED,
+                "Product added: " + savedProduct.getName(),
+                "admin", // or get current user from session
+                savedProduct.getId().toString(),
+                "PRODUCT",
+                request
+            );
+            
             return "Product added successfully";
         } catch (IllegalArgumentException e) {
             return "Failed to add product: " + e.getMessage();
@@ -50,7 +68,18 @@ public class ProductServiceImplementation implements ProductService {
             }
             
             validateProduct(product);
-            repo.save(product);
+            Product updatedProduct = repo.save(product);
+            
+            // Log the activity
+            activityLogService.logActivity(
+                ActivityLogService.PRODUCT_UPDATED,
+                "Product updated: " + updatedProduct.getName(),
+                "admin", // or get current user from session
+                updatedProduct.getId().toString(),
+                "PRODUCT",
+                request
+            );
+            
             return "Product updated successfully";
         } catch (IllegalArgumentException e) {
             return "Failed to update product: " + e.getMessage();
@@ -66,7 +95,20 @@ public class ProductServiceImplementation implements ProductService {
                 return "Product not found";
             }
             
+            Product product = repo.findById(id).orElse(null);
             repo.deleteById(id);
+
+            if (product != null) {
+                // Log the activity
+                activityLogService.logActivity(
+                    ActivityLogService.PRODUCT_UPDATED, // We can create PRODUCT_DELETED if needed
+                    "Product deleted: " + product.getName(),
+                    "admin",
+                    product.getId().toString(),
+                    "PRODUCT"
+                );
+            }
+            
             return "Product deleted successfully";
         } catch (EmptyResultDataAccessException e) {
             return "Product not found";

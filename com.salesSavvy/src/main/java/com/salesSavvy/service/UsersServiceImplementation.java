@@ -5,6 +5,7 @@ import com.salesSavvy.repository.UsersRepository;
 import com.salesSavvy.util.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,12 @@ public class UsersServiceImplementation implements UsersService {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ActivityLogService activityLogService;
+
+    @Autowired
+    private HttpServletRequest request;
 
     @Override
     public Map<String, Object> signUp(Users user) {
@@ -75,18 +82,28 @@ public class UsersServiceImplementation implements UsersService {
                 user.setRole("customer");
             }
             
-            repo.save(user);
+            Users savedUser = repo.save(user);
+            
+            // Log the activity
+            activityLogService.logActivity(
+                ActivityLogService.USER_REGISTERED,
+                "New user registered: " + savedUser.getUsername(),
+                savedUser.getUsername(),
+                savedUser.getId().toString(),
+                "USER",
+                request
+            );
             
             response.put("success", true);
             response.put("message", "User registered successfully");
             // Don't include the password in the response
             Users safeUser = new Users();
-            safeUser.setId(user.getId());
-            safeUser.setUsername(user.getUsername());
-            safeUser.setEmail(user.getEmail());
-            safeUser.setRole(user.getRole());
-            safeUser.setGender(user.getGender());
-            safeUser.setDob(user.getDob());
+            safeUser.setId(savedUser.getId());
+            safeUser.setUsername(savedUser.getUsername());
+            safeUser.setEmail(savedUser.getEmail());
+            safeUser.setRole(savedUser.getRole());
+            safeUser.setGender(savedUser.getGender());
+            safeUser.setDob(savedUser.getDob());
             response.put("user", safeUser);
             
         } catch (Exception e) {
@@ -123,6 +140,18 @@ public class UsersServiceImplementation implements UsersService {
         // Use password encoder to check the password
         boolean matches = passwordEncoder.matches(password, user.getPassword());
         System.out.println("Password matches: " + matches);
+
+        // Log login activity if successful
+        if (matches) {
+            activityLogService.logActivity(
+                ActivityLogService.USER_LOGIN,
+                "User logged in: " + username,
+                username,
+                user.getId().toString(),
+                "USER",
+                request
+            );
+        }
         
         return matches;
     }
@@ -139,8 +168,23 @@ public class UsersServiceImplementation implements UsersService {
 
     @Override
     public String deleteUser(Long id) {
-        repo.deleteById(id);
-        return "User deleted Successfully!";
+        try {
+            Users user = repo.findById(id).orElse(null);
+            if (user != null) {
+                // Log the activity before deletion
+                activityLogService.logActivity(
+                    ActivityLogService.USER_REGISTERED, // We can create a USER_DELETED type if needed
+                    "User deleted: " + user.getUsername(),
+                    "admin",
+                    user.getId().toString(),
+                    "USER"
+                );
+            }
+            repo.deleteById(id);
+            return "User deleted Successfully!";
+        } catch (Exception e) {
+            return "Error deleting user: " + e.getMessage();
+        }
     }
     
     @Override
@@ -164,6 +208,16 @@ public class UsersServiceImplementation implements UsersService {
         String hashedNewPassword = passwordEncoder.encode(newPassword);
         user.setPassword(hashedNewPassword);
         repo.save(user);
+
+        // Log the activity
+        activityLogService.logActivity(
+            ActivityLogService.PASSWORD_CHANGED,
+            "Password changed for user: " + username,
+            username,
+            user.getId().toString(),
+            "USER",
+            request
+        );
         
         return true;
     }

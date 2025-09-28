@@ -4,6 +4,7 @@ import com.salesSavvy.entity.Order;
 import com.salesSavvy.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,10 +13,28 @@ public class OrderServiceImpl implements OrderService {
     
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private ActivityLogService activityLogService;
+
+    @Autowired
+    private HttpServletRequest request;
     
     @Override
     public Order saveOrder(Order order) {
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        
+        // Log the activity
+        activityLogService.logActivity(
+            ActivityLogService.ORDER_PLACED,
+            "New order #" + savedOrder.getOrderId() + " placed by " + savedOrder.getUsername(),
+            savedOrder.getUsername(),
+            savedOrder.getOrderId(),
+            "ORDER",
+            request
+        );
+        
+        return savedOrder;
     }
     
     @Override
@@ -39,8 +58,20 @@ public class OrderServiceImpl implements OrderService {
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
         if (optionalOrder.isPresent()) {
             Order order = optionalOrder.get();
+            String oldStatus = order.getStatus();
             order.setStatus(status);
-            return orderRepository.save(order);
+            Order updatedOrder = orderRepository.save(order);
+
+            // Log the activity
+            activityLogService.logActivity(
+                ActivityLogService.ORDER_PLACED, // We can create ORDER_STATUS_CHANGED if needed
+                "Order #" + updatedOrder.getOrderId() + " status changed from " + oldStatus + " to " + status,
+                "admin",
+                updatedOrder.getOrderId(),
+                "ORDER"
+            );
+            
+            return updatedOrder;
         }
         return null; // Or throw an exception
     }
