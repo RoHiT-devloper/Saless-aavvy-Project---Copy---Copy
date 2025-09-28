@@ -1,0 +1,84 @@
+package com.salesSavvy.controller;
+
+import com.salesSavvy.entity.Order;
+import com.salesSavvy.service.OrderService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@CrossOrigin("*")
+@RequestMapping("/api/orders")
+public class OrderController {
+    
+    @Autowired
+    private OrderService orderService;
+    
+    @PostMapping("/save")
+    public ResponseEntity<Order> saveOrder(@RequestBody Order order) {
+        Order savedOrder = orderService.saveOrder(order);
+        return ResponseEntity.ok(savedOrder);
+    }
+    
+    @GetMapping("/user/{username}")
+    public ResponseEntity<List<Order>> getOrdersByUsername(@PathVariable String username) {
+        List<Order> orders = orderService.getOrdersByUsername(username);
+        return ResponseEntity.ok(orders);
+    }
+    
+    @GetMapping("/{orderId}")
+    public ResponseEntity<Order> getOrderByOrderId(@PathVariable String orderId) {
+        Order order = orderService.getOrderByOrderId(orderId);
+        if (order != null) {
+            return ResponseEntity.ok(order);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+}
+this is my order controller what other to add
+
+package com.salesSavvy.service;
+
+import com.salesSavvy.entity.Order;
+import java.util.List;
+
+public interface OrderService {
+    Order saveOrder(Order order);
+    List<Order> getOrdersByUsername(String username);
+    Order getOrderByOrderId(String orderId);
+}
+
+this is my order service
+package com.salesSavvy.service;
+
+import com.salesSavvy.entity.Order;
+import com.salesSavvy.repository.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+@Service
+public class OrderServiceImpl implements OrderService {
+    
+    @Autowired
+    private OrderRepository orderRepository;
+    
+    @Override
+    public Order saveOrder(Order order) {
+        return orderRepository.save(order);
+    }
+    
+    @Override
+    public List<Order> getOrdersByUsername(String username) {
+        return orderRepository.findByUsername(username);
+    }
+    
+    @Override
+    public Order getOrderByOrderId(String orderId) {
+        return orderRepository.findByOrderId(orderId);
+    }
+}
+
+this is the order mplementation what else to add

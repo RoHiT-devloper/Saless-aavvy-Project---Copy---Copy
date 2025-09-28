@@ -1,0 +1,114 @@
+/* ThemeToggle.css */
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  position: relative;
+  width: 60px;
+  height: 30px;
+}
+
+.theme-toggle:hover {
+  background: var(--gray-100);
+  transform: scale(1.05);
+}
+
+.toggle-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 26px;
+  height: 26px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle.dark .toggle-thumb {
+  transform: translateX(30px);
+}
+
+.sun-icon, .moon-icon {
+  font-size: 12px;
+  transition: opacity 0.3s ease;
+  position: absolute;
+}
+
+.sun-icon {
+  opacity: 1;
+}
+
+.moon-icon {
+  opacity: 0;
+}
+
+.theme-toggle.dark .sun-icon {
+  opacity: 0;
+}
+
+.theme-toggle.dark .moon-icon {
+  opacity: 1;
+}
+
+/* Animation for theme transition */
+.theme-toggle {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Ripple effect */
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.theme-toggle:active::after {
+  width: 100%;
+  height: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .theme-toggle {
+    width: 50px;
+    height: 25px;
+  }
+  
+  .theme-toggle.dark .toggle-thumb {
+    transform: translateX(25px);
+  }
+  
+  .toggle-thumb {
+    width: 21px;
+    height: 21px;
+  }
+}

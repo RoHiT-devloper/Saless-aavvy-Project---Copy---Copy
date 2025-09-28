@@ -1,0 +1,385 @@
+/* Admin_Home.css - Fixed Light/Dark Mode Card Colors */
+:root {
+  /* Light Theme Variables */
+  --bg-primary: #f8f9fa;
+  --card-bg: #ffffff;
+  --bg-secondary: #f1f3f4;
+  --border-light: #e0e0e0;
+  --primary: #667eea;
+  --secondary: #764ba2;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --text-tertiary: #a0a0a0;
+  --input-bg: #ffffff;
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  --success: #51cf66;
+  --warning: #f59f00;
+  --error: #ff6b6b;
+  
+  /* Light Theme Card Colors */
+  --user-card-bg: #ffffff;
+  --user-card-text: #2c3e50;
+  --user-card-border: #e0e0e0;
+  --product-card-bg: #ffffff;
+  --product-card-text: #2c3e50;
+  --product-card-border: #e0e0e0;
+  --order-card-bg: #ffffff;
+  --order-card-text: #2c3e50;
+  --order-card-border: #e0e0e0;
+}
+
+[data-theme="dark"] {
+  /* Dark Theme Variables */
+  --bg-primary: #0f1419;
+  --card-bg: #1e2328;
+  --bg-secondary: #2a2f36;
+  --border-light: #3a3f46;
+  --text-primary: #ffffff;
+  --text-secondary: #a0aec0;
+  --text-tertiary: #718096;
+  --input-bg: #2a2f36;
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  
+  /* Dark Theme Card Colors - Make them lighter for better contrast */
+  --user-card-bg: #2d3748;
+  --user-card-text: #ffffff;
+  --user-card-border: #4a5568;
+  --product-card-bg: #2d3748;
+  --product-card-text: #ffffff;
+  --product-card-border: #4a5568;
+  --order-card-bg: #2d3748;
+  --order-card-text: #ffffff;
+  --order-card-border: #4a5568;
+}
+
+/* Base Styles */
+.admin-home-container {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  padding: 2rem;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  transition: all 0.3s ease;
+}
+
+/* Header Styles */
+.admin-home-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: var(--card-bg);
+  border-radius: 1.5rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-light);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.admin-home-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.05), transparent);
+  transition: left 0.6s ease;
+}
+
+.admin-home-header:hover::before {
+  left: 100%;
+}
+
+.admin-home-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.admin-home-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* Admin Cards Grid */
+.admin-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+/* Admin Card Styles - FIXED FOR LIGHT MODE */
+.admin-card {
+  display: block;
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--card-shadow);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  /* Use the specific card background variables */
+  background: var(--card-bg);
+}
+
+.admin-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.admin-card:hover::before {
+  left: 100%;
+}
+
+.admin-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+  border-color: var(--primary);
+}
+
+/* Specific card styles with proper gradients for light mode */
+.user-management-card {
+  border-left: 6px solid #667eea;
+  background: var(--user-card-bg);
+  color: var(--user-card-text);
+}
+
+.product-management-card {
+  border-left: 6px solid #51cf66;
+  background: var(--product-card-bg);
+  color: var(--product-card-text);
+}
+
+.order-management-card {
+  border-left: 6px solid #ff6b6b;
+  background: var(--order-card-bg);
+  color: var(--order-card-text);
+}
+
+/* Card Icon Styles */
+.admin-card-icon {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.9;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.admin-card:hover .admin-card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.user-management-card .admin-card-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.product-management-card .admin-card-icon {
+  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+}
+
+.order-management-card .admin-card-icon {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+}
+
+/* Card Title Styles */
+.admin-card-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: inherit; /* Inherit from parent card */
+  transition: all 0.3s ease;
+}
+
+.admin-card:hover .admin-card-title {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Card Description Styles */
+.admin-card-description {
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  font-size: 1.1rem;
+  opacity: 0.9;
+  transition: all 0.3s ease;
+  color: inherit; /* Inherit from parent card */
+}
+
+.admin-card:hover .admin-card-description {
+  opacity: 1;
+}
+
+/* Card CTA Styles */
+.admin-card-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  background: rgba(102, 126, 234, 0.1);
+  color: var(--primary);
+}
+
+.admin-card:hover .admin-card-cta {
+  transform: translateX(5px);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  color: white;
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.user-management-card:hover .admin-card-cta {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.product-management-card:hover .admin-card-cta {
+  background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+}
+
+.order-management-card:hover .admin-card-cta {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-card {
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+}
+
+.user-management-card { animation-delay: 0.1s; }
+.product-management-card { animation-delay: 0.2s; }
+.order-management-card { animation-delay: 0.3s; }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .admin-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-home-container {
+    padding: 1rem;
+  }
+  
+  .admin-home-header {
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .admin-home-title {
+    font-size: 2rem;
+  }
+  
+  .admin-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .admin-card {
+    padding: 2rem;
+  }
+  
+  .admin-card-icon {
+    font-size: 2.5rem;
+    width: 70px;
+    height: 70px;
+  }
+  
+  .admin-card-title {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-card {
+    padding: 1.5rem;
+  }
+  
+  .admin-home-header {
+    padding: 1rem;
+  }
+  
+  .admin-card-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+  
+  .admin-card-cta {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* Font Awesome fallbacks */
+.fas {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+}
+
+.fas.fa-users::before { content: "👥"; font-family: initial; }
+.fas.fa-box::before { content: "📦"; font-family: initial; }
+.fas.fa-shopping-cart::before { content: "🛒"; font-family: initial; }
+.fas.fa-arrow-right::before { content: "→"; font-family: initial; font-weight: bold; }
+
+/* Additional hover effects */
+.admin-card-cta i {
+  transition: transform 0.3s ease;
+}
+
+.admin-card:hover .admin-card-cta i {
+  transform: translateX(3px);
+}
+
+/* Focus states for accessibility */
+.admin-card:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.admin-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+/* Theme transition for smooth mode switching */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
