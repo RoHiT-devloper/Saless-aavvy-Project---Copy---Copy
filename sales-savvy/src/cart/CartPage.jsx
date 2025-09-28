@@ -2,6 +2,290 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CartPage.css";
 
+// Import the AddressManager component
+const AddressManager = ({ onAddressSelect, showSelector = false }) => {
+    const [addresses, setAddresses] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [editingAddress, setEditingAddress] = useState(null);
+    const [formData, setFormData] = useState({
+        fullName: '',
+        phoneNumber: '',
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        addressType: 'HOME',
+        isDefault: false
+    });
+
+    useEffect(() => {
+        fetchAddresses();
+    }, []);
+
+    const fetchAddresses = async () => {
+        const username = localStorage.getItem('username');
+        if (!username) return;
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/addresses/user/${username}`);
+            if (response.ok) {
+                const data = await response.json();
+                setAddresses(data);
+            }
+        } catch (error) {
+            console.error('Error fetching addresses:', error);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const username = localStorage.getItem('username');
+        
+        try {
+            const addressData = {
+                ...formData,
+                username
+            };
+
+            const url = editingAddress ? 
+                `http://localhost:8080/api/addresses/${editingAddress.id}` :
+                'http://localhost:8080/api/addresses/add';
+            
+            const method = editingAddress ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(addressData)
+            });
+
+            if (response.ok) {
+                setShowForm(false);
+                setEditingAddress(null);
+                setFormData({
+                    fullName: '',
+                    phoneNumber: '',
+                    street: '',
+                    city: '',
+                    state: '',
+                    zipCode: '',
+                    addressType: 'HOME',
+                    isDefault: false
+                });
+                fetchAddresses();
+            }
+        } catch (error) {
+            console.error('Error saving address:', error);
+        }
+    };
+
+    const setDefaultAddress = async (addressId) => {
+        const username = localStorage.getItem('username');
+        try {
+            const response = await fetch(
+                `http://localhost:8080/api/addresses/${addressId}/set-default?username=${username}`,
+                { method: 'POST' }
+            );
+            if (response.ok) {
+                fetchAddresses();
+            }
+        } catch (error) {
+            console.error('Error setting default address:', error);
+        }
+    };
+
+    const deleteAddress = async (addressId) => {
+        const username = localStorage.getItem('username');
+        if (window.confirm('Are you sure you want to delete this address?')) {
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/api/addresses/${addressId}?username=${username}`,
+                    { method: 'DELETE' }
+                );
+                if (response.ok) {
+                    fetchAddresses();
+                }
+            } catch (error) {
+                console.error('Error deleting address:', error);
+            }
+        }
+    };
+
+    const editAddress = (address) => {
+        setEditingAddress(address);
+        setFormData({
+            fullName: address.fullName,
+            phoneNumber: address.phoneNumber,
+            street: address.street,
+            city: address.city,
+            state: address.state,
+            zipCode: address.zipCode,
+            addressType: address.addressType,
+            isDefault: address.isDefault
+        });
+        setShowForm(true);
+    };
+
+    return (
+        <div className="address-manager">
+            <div className="address-header">
+                <h3>Shipping Addresses</h3>
+                <button 
+                    onClick={() => {
+                        setEditingAddress(null);
+                        setShowForm(true);
+                        setFormData({
+                            fullName: '',
+                            phoneNumber: '',
+                            street: '',
+                            city: '',
+                            state: '',
+                            zipCode: '',
+                            addressType: 'HOME',
+                            isDefault: false
+                        });
+                    }}
+                    className="add-address-btn"
+                >
+                    + Add New Address
+                </button>
+            </div>
+
+            {showForm && (
+                <form className="address-form" onSubmit={handleSubmit}>
+                    <h4>{editingAddress ? 'Edit Address' : 'Add New Address'}</h4>
+                    
+                    <div className="form-row">
+                        <input
+                            type="text"
+                            placeholder="Full Name"
+                            value={formData.fullName}
+                            onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                            required
+                        />
+                        <input
+                            type="tel"
+                            placeholder="Phone Number"
+                            value={formData.phoneNumber}
+                            onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
+                            required
+                        />
+                    </div>
+
+                    <textarea
+                        placeholder="Street Address"
+                        value={formData.street}
+                        onChange={(e) => setFormData({...formData, street: e.target.value})}
+                        required
+                    />
+
+                    <div className="form-row">
+                        <input
+                            type="text"
+                            placeholder="City"
+                            value={formData.city}
+                            onChange={(e) => setFormData({...formData, city: e.target.value})}
+                            required
+                        />
+                        <input
+                            type="text"
+                            placeholder="State"
+                            value={formData.state}
+                            onChange={(e) => setFormData({...formData, state: e.target.value})}
+                            required
+                        />
+                        <input
+                            type="text"
+                            placeholder="ZIP Code"
+                            value={formData.zipCode}
+                            onChange={(e) => setFormData({...formData, zipCode: e.target.value})}
+                            required
+                        />
+                    </div>
+
+                    <div className="form-row">
+                        <select
+                            value={formData.addressType}
+                            onChange={(e) => setFormData({...formData, addressType: e.target.value})}
+                        >
+                            <option value="HOME">Home</option>
+                            <option value="WORK">Work</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                        
+                        <label className="checkbox-label">
+                            <input
+                                type="checkbox"
+                                checked={formData.isDefault}
+                                onChange={(e) => setFormData({...formData, isDefault: e.target.checked})}
+                            />
+                            Set as default address
+                        </label>
+                    </div>
+
+                    <div className="form-actions">
+                        <button type="submit" className="save-btn">
+                            {editingAddress ? 'Update Address' : 'Save Address'}
+                        </button>
+                        <button 
+                            type="button" 
+                            onClick={() => setShowForm(false)}
+                            className="cancel-btn"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            )}
+
+            <div className="addresses-list">
+                {addresses.map(address => (
+                    <div key={address.id} className={`address-card ${address.isDefault ? 'default' : ''}`}>
+                        <div className="address-content">
+                            <div className="address-type">{address.addressType}</div>
+                            {address.isDefault && <span className="default-badge">Default</span>}
+                            <p><strong>{address.fullName}</strong> | {address.phoneNumber}</p>
+                            <p>{address.street}</p>
+                            <p>{address.city}, {address.state} {address.zipCode}</p>
+                            <p>{address.country}</p>
+                        </div>
+                        <div className="address-actions">
+                            {!address.isDefault && (
+                                <button 
+                                    onClick={() => setDefaultAddress(address.id)}
+                                    className="set-default-btn"
+                                >
+                                    Set Default
+                                </button>
+                            )}
+                            <button 
+                                onClick={() => editAddress(address)}
+                                className="edit-btn"
+                            >
+                                Edit
+                            </button>
+                            <button 
+                                onClick={() => deleteAddress(address.id)}
+                                className="delete-btn"
+                            >
+                                Delete
+                            </button>
+                            {showSelector && onAddressSelect && (
+                                <button 
+                                    onClick={() => onAddressSelect(address)}
+                                    className="select-btn"
+                                >
+                                    Select
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,11 +294,21 @@ const CartPage = () => {
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [showBill, setShowBill] = useState(false);
   const [billData, setBillData] = useState(null);
+  
+  // New state variables for enhanced features
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [showAddressManager, setShowAddressManager] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [wishlistItems, setWishlistItems] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchCartItems();
     loadRazorpay();
+    fetchWishlistItems();
   }, []);
 
   const loadRazorpay = () => {
@@ -52,9 +346,8 @@ const CartPage = () => {
       const response = await fetch(`http://localhost:8080/api/cart/getCart?username=${username}`);
       if (response.ok) {
         const cartData = await response.json();
-        console.log("Cart Data:", cartData); // Debug log
+        console.log("Cart Data:", cartData);
         
-        // Handle different response structures
         let items = [];
         let total = 0;
         
@@ -80,10 +373,23 @@ const CartPage = () => {
     }
   };
 
-  // Implement handleUpdateQuantity function
+  const fetchWishlistItems = async () => {
+    const username = localStorage.getItem("username");
+    if (!username) return;
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/wishlist/${username}`);
+      if (response.ok) {
+        const data = await response.json();
+        setWishlistItems(data);
+      }
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+    }
+  };
+
   const handleUpdateQuantity = async (productId, newQuantity) => {
     if (newQuantity < 1) {
-      // If quantity becomes 0, remove the item instead
       await handleRemoveItem(productId);
       return;
     }
@@ -95,8 +401,8 @@ const CartPage = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/cart/updateQuantity", {
-        method: "PUT",
+      const response = await fetch("http://localhost:8080/api/cart/update", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -108,7 +414,6 @@ const CartPage = () => {
       });
 
       if (response.ok) {
-        // Update local state immediately for better UX
         setCartItems(prevItems => 
           prevItems.map(item => 
             item.product.id === productId 
@@ -117,7 +422,6 @@ const CartPage = () => {
           )
         );
         
-        // Recalculate total price
         const updatedTotal = cartItems.reduce((total, item) => {
           if (item.product.id === productId) {
             return total + (item.product.price * newQuantity);
@@ -129,18 +433,15 @@ const CartPage = () => {
         showNotification("Cart updated successfully", "success");
       } else {
         showNotification("Failed to update quantity", "error");
-        // Revert to original data if update fails
         fetchCartItems();
       }
     } catch (error) {
       console.error('Error updating quantity:', error);
       showNotification("Error updating cart", "error");
-      // Revert to original data if update fails
       fetchCartItems();
     }
   };
 
-  // Implement handleRemoveItem function
   const handleRemoveItem = async (productId) => {
     const username = localStorage.getItem("username");
     if (!username) {
@@ -154,10 +455,8 @@ const CartPage = () => {
       });
 
       if (response.ok) {
-        // Update local state immediately for better UX
         setCartItems(prevItems => prevItems.filter(item => item.product.id !== productId));
         
-        // Recalculate total price
         const updatedTotal = cartItems
           .filter(item => item.product.id !== productId)
           .reduce((total, item) => total + (item.product.price * item.quantity), 0);
@@ -166,15 +465,101 @@ const CartPage = () => {
         showNotification("Item removed from cart", "success");
       } else {
         showNotification("Failed to remove item", "error");
-        // Revert to original data if removal fails
         fetchCartItems();
       }
     } catch (error) {
       console.error('Error removing item:', error);
       showNotification("Error removing item", "error");
-      // Revert to original data if removal fails
       fetchCartItems();
     }
+  };
+
+  const addToWishlist = async (product) => {
+    const username = localStorage.getItem("username");
+    if (!username) {
+      showNotification("Please log in to add to wishlist", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/wishlist/add?username=${username}&productId=${product.id}`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        showNotification(`Added ${product.name} to wishlist!`, "success");
+        fetchWishlistItems();
+      } else {
+        showNotification("Failed to add to wishlist", "error");
+      }
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      showNotification("Error adding to wishlist", "error");
+    }
+  };
+
+  const isInWishlist = (productId) => {
+    return wishlistItems.some(item => item.id === productId);
+  };
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/coupons/validate?code=${couponCode}&orderAmount=${totalPrice}`
+      );
+      
+      if (response.ok) {
+        const discount = await response.json();
+        setAppliedCoupon(discount);
+        setCouponError('');
+        showNotification("Coupon applied successfully!", "success");
+      } else {
+        const error = await response.json();
+        setCouponError(error.error);
+        setAppliedCoupon(null);
+      }
+    } catch (error) {
+      setCouponError('Error applying coupon');
+      setAppliedCoupon(null);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  };
+
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+
+    let discount = 0;
+    const subtotal = totalPrice;
+    const taxAmount = Math.round(subtotal * 0.18);
+    const shipping = subtotal > 0 ? 50 : 0;
+    const totalBeforeDiscount = subtotal + taxAmount + shipping;
+
+    if (appliedCoupon.discountType === 'PERCENTAGE') {
+      discount = (totalBeforeDiscount * appliedCoupon.discountValue) / 100;
+    } else {
+      discount = appliedCoupon.discountValue;
+    }
+
+    return Math.min(discount, totalBeforeDiscount);
+  };
+
+  const calculateFinalTotal = () => {
+    const subtotal = totalPrice;
+    const taxAmount = Math.round(subtotal * 0.18);
+    const shipping = subtotal > 0 ? 50 : 0;
+    const discount = calculateDiscount();
+    
+    return Math.max(0, subtotal + taxAmount + shipping - discount);
   };
 
   const saveOrderToDatabase = async (orderData) => {
@@ -205,10 +590,12 @@ const CartPage = () => {
     const orderId = `ORD-${Date.now()}`;
     const date = new Date().toLocaleDateString();
     const time = new Date().toLocaleTimeString();
-    const taxAmount = Math.round(totalPrice * 0.18);
-    const finalAmount = totalPrice > 0 ? totalPrice + 50 + taxAmount : 0;
+    const subtotal = totalPrice;
+    const taxAmount = Math.round(subtotal * 0.18);
+    const shipping = subtotal > 0 ? 50 : 0;
+    const discount = calculateDiscount();
+    const finalAmount = calculateFinalTotal();
     
-    // Prepare order items for database
     const orderItems = cartItems.map(item => ({
       productId: item.product.id,
       productName: item.product.name,
@@ -217,7 +604,6 @@ const CartPage = () => {
       itemTotal: item.product.price * item.quantity
     }));
     
-    // Create order data for database
     const orderData = {
       orderId: orderId,
       username: username,
@@ -226,11 +612,14 @@ const CartPage = () => {
       orderDate: new Date().toISOString(),
       totalAmount: finalAmount,
       status: "CONFIRMED",
-      shippingAddress: "123 Customer Street, City, State",
-      items: orderItems
+      shippingAddress: selectedAddress ? 
+        `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} ${selectedAddress.zipCode}` : 
+        "Address not specified",
+      items: orderItems,
+      couponCode: appliedCoupon ? couponCode : null,
+      discountAmount: discount
     };
     
-    // Save order to database
     saveOrderToDatabase(orderData);
     
     return {
@@ -239,15 +628,19 @@ const CartPage = () => {
       time,
       customer: username,
       customerEmail: `${username}@example.com`,
-      shippingAddress: "123 Customer Street, City, State",
+      shippingAddress: selectedAddress ? 
+        `${selectedAddress.street}, ${selectedAddress.city}, ${selectedAddress.state} ${selectedAddress.zipCode}` : 
+        "Address not specified",
       items: cartItems.map(item => ({
         ...item,
         itemTotal: item.product.price * item.quantity
       })),
-      subtotal: totalPrice,
+      subtotal: subtotal,
       tax: taxAmount,
-      shipping: totalPrice > 0 ? 50 : 0,
+      shipping: shipping,
+      discount: discount,
       total: finalAmount,
+      couponCode: appliedCoupon ? couponCode : null,
       paymentId: paymentResponse.razorpay_payment_id,
       razorpayOrderId: paymentResponse.razorpay_order_id,
       signature: paymentResponse.razorpay_signature
@@ -274,6 +667,7 @@ const CartPage = () => {
             .bill-summary { margin-top: 20px; padding-top: 20px; border-top: 2px solid #eee; }
             .bill-summary .total { font-weight: bold; font-size: 1.2em; }
             .bill-footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee; color: #666; }
+            .discount { color: #28a745; }
             @media print {
               body { margin: 0; padding: 0; }
               .bill-receipt { border: none; box-shadow: none; }
@@ -291,6 +685,11 @@ const CartPage = () => {
   };
 
   const initiateRazorpayPayment = async () => {
+    if (!selectedAddress) {
+      showNotification("Please select a shipping address", "error");
+      return;
+    }
+
     const razorpayAvailable = await loadRazorpay();
     if (!razorpayAvailable) {
       showNotification("Payment service is temporarily unavailable. Please try again later.", "error");
@@ -300,8 +699,7 @@ const CartPage = () => {
     setProcessingPayment(true);
     
     try {
-      const taxAmount = Math.round(totalPrice * 0.18);
-      const finalAmount = totalPrice > 0 ? totalPrice + 50 + taxAmount : 0;
+      const finalAmount = calculateFinalTotal();
       
       const options = {
         key: "rzp_test_1DP5mmOlF5G5ag",
@@ -350,7 +748,6 @@ const CartPage = () => {
     if (!username) return;
 
     try {
-      // Clear all items from cart
       const clearPromises = cartItems.map(item => 
         fetch(`http://localhost:8080/api/cart/remove?productId=${item.product.id}&username=${username}`, {
           method: "DELETE",
@@ -359,7 +756,6 @@ const CartPage = () => {
       
       await Promise.all(clearPromises);
       
-      // Reset local state
       setCartItems([]);
       setTotalPrice(0);
       
@@ -376,9 +772,7 @@ const CartPage = () => {
     navigate("/customer");
   };
 
-  // Notification system
   const showNotification = (message, type = 'info') => {
-    // Remove existing notification
     const existingNotification = document.querySelector('.notification');
     if (existingNotification) {
       existingNotification.remove();
@@ -393,7 +787,6 @@ const CartPage = () => {
     
     document.body.appendChild(notification);
     
-    // Auto remove after 3 seconds
     setTimeout(() => {
       if (notification.parentElement) {
         notification.remove();
@@ -453,6 +846,12 @@ const CartPage = () => {
               <span>Shipping Address:</span>
               <span>{billData.shippingAddress}</span>
             </div>
+            {billData.couponCode && (
+              <div className="bill-row">
+                <span>Coupon Applied:</span>
+                <span>{billData.couponCode}</span>
+              </div>
+            )}
             <div className="bill-row">
               <span>Payment ID:</span>
               <span>{billData.paymentId}</span>
@@ -487,13 +886,19 @@ const CartPage = () => {
               <span>Rs.{billData.subtotal}</span>
             </div>
             <div className="summary-row">
-              <span>Tax (GST):</span>
+              <span>Tax (GST 18%):</span>
               <span>Rs.{billData.tax}</span>
             </div>
             <div className="summary-row">
               <span>Shipping:</span>
               <span>Rs.{billData.shipping}</span>
             </div>
+            {billData.discount > 0 && (
+              <div className="summary-row discount">
+                <span>Discount:</span>
+                <span>-Rs.{billData.discount}</span>
+              </div>
+            )}
             <div className="summary-row total">
               <span>Total Amount:</span>
               <span>Rs.{billData.total}</span>
@@ -518,6 +923,12 @@ const CartPage = () => {
     );
   }
 
+  const subtotal = totalPrice;
+  const taxAmount = Math.round(subtotal * 0.18);
+  const shipping = subtotal > 0 ? 50 : 0;
+  const discount = calculateDiscount();
+  const finalTotal = calculateFinalTotal();
+
   return (
     <div className="cart-container">
       {/* Cart Header */}
@@ -536,7 +947,7 @@ const CartPage = () => {
             <span className="stat-label">Items</span>
           </div>
           <div className="stat-item">
-            <span className="stat-number">Rs.{totalPrice}</span>
+            <span className="stat-number">Rs.{subtotal}</span>
             <span className="stat-label">Subtotal</span>
           </div>
         </div>
@@ -559,10 +970,10 @@ const CartPage = () => {
             <h2 className="section-title">Cart Items ({cartItems.length})</h2>
             <div className="cart-items">
               {cartItems.map((item) => {
-                // Calculate item total safely
                 const itemPrice = item.product?.price || 0;
                 const itemQuantity = item.quantity || 0;
                 const itemTotal = itemPrice * itemQuantity;
+                const inWishlist = isInWishlist(item.product.id);
 
                 return (
                   <div key={item.product?.id || item.id} className="cart-item">
@@ -590,6 +1001,16 @@ const CartPage = () => {
                       <h3 className="item-name">{item.product?.name || 'Unknown Product'}</h3>
                       <p className="item-description">{item.product?.description || 'No description available'}</p>
                       <p className="item-price">Rs. {itemPrice} each</p>
+                      
+                      <div className="item-actions">
+                        <button 
+                          onClick={() => addToWishlist(item.product)}
+                          disabled={inWishlist}
+                          className={`wishlist-btn ${inWishlist ? 'in-wishlist' : ''}`}
+                        >
+                          {inWishlist ? '❤️ In Wishlist' : '🤍 Add to Wishlist'}
+                        </button>
+                      </div>
                     </div>
                     
                     <div className="item-controls">
@@ -630,23 +1051,91 @@ const CartPage = () => {
             <div className="cart-summary">
               <h3 className="summary-title">Order Summary</h3>
               
+              {/* Coupon Section */}
+              <div className="coupon-section">
+                <h4>Apply Coupon</h4>
+                <div className="coupon-input-group">
+                  <input
+                    type="text"
+                    placeholder="Enter coupon code"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    disabled={!!appliedCoupon}
+                    className="coupon-input"
+                  />
+                  {appliedCoupon ? (
+                    <button 
+                      onClick={removeCoupon}
+                      className="remove-coupon-btn"
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={applyCoupon}
+                      className="apply-coupon-btn"
+                    >
+                      Apply
+                    </button>
+                  )}
+                </div>
+                {couponError && <div className="coupon-error">{couponError}</div>}
+                {appliedCoupon && (
+                  <div className="coupon-success">
+                    Coupon applied! Discount: Rs.{discount}
+                  </div>
+                )}
+              </div>
+
+              {/* Shipping Address Section */}
+              <div className="shipping-section">
+                <h4>Shipping Address</h4>
+                {selectedAddress ? (
+                  <div className="selected-address">
+                    <p><strong>{selectedAddress.fullName}</strong></p>
+                    <p>{selectedAddress.street}, {selectedAddress.city}</p>
+                    <p>{selectedAddress.state} - {selectedAddress.zipCode}</p>
+                    <button 
+                      onClick={() => setShowAddressManager(true)}
+                      className="change-address-btn"
+                    >
+                      Change Address
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={() => setShowAddressManager(true)}
+                    className="select-address-btn"
+                  >
+                    Select Shipping Address
+                  </button>
+                )}
+              </div>
+
+              {/* Order Summary */}
               <div className="summary-items">
                 <div className="summary-row">
                   <span>Subtotal ({cartItems.length} items):</span>
-                  <span>Rs.{totalPrice}</span>
+                  <span>Rs.{subtotal}</span>
                 </div>
                 <div className="summary-row">
                   <span>Tax (GST 18%):</span>
-                  <span>Rs.{Math.round(totalPrice * 0.18)}</span>
+                  <span>Rs.{taxAmount}</span>
                 </div>
                 <div className="summary-row">
                   <span>Shipping:</span>
-                  <span>Rs.{(totalPrice > 0 ? 50 : 0)}</span>
+                  <span>Rs.{shipping}</span>
                 </div>
+                {discount > 0 && (
+                  <div className="summary-row discount">
+                    <span>Discount:</span>
+                    <span>-Rs.{discount}</span>
+                  </div>
+                )}
                 <div className="summary-divider"></div>
                 <div className="summary-row total">
                   <span>Total Amount:</span>
-                  <span>Rs.{(totalPrice > 0 ? totalPrice + 50 + Math.round(totalPrice * 0.18) : 0)}</span>
+                  <span>Rs.{finalTotal}</span>
                 </div>
               </div>
               
@@ -660,7 +1149,7 @@ const CartPage = () => {
               
               <button 
                 onClick={initiateRazorpayPayment} 
-                disabled={processingPayment || !razorpayLoaded}
+                disabled={processingPayment || !razorpayLoaded || !selectedAddress}
                 className="checkout-btn"
               >
                 {processingPayment ? (
@@ -670,14 +1159,44 @@ const CartPage = () => {
                   </>
                 ) : (
                   <>
-                    💳 Proceed to Payment - Rs.{(totalPrice > 0 ? totalPrice + 50 + Math.round(totalPrice * 0.18) : 0)}
+                    💳 Proceed to Payment - Rs.{finalTotal}
                   </>
                 )}
               </button>
               
+              {!selectedAddress && (
+                <p className="address-warning">Please select a shipping address to proceed</p>
+              )}
+              
               <button onClick={() => navigate("/customer")} className="continue-shopping-btn">
                 ← Continue Shopping
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Address Manager Modal */}
+      {showAddressManager && (
+        <div className="address-modal-overlay">
+          <div className="address-modal">
+            <div className="modal-header">
+              <h3>Select Shipping Address</h3>
+              <button 
+                onClick={() => setShowAddressManager(false)}
+                className="close-modal-btn"
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-content">
+              <AddressManager 
+                onAddressSelect={(address) => {
+                  setSelectedAddress(address);
+                  setShowAddressManager(false);
+                }}
+                showSelector={true}
+              />
             </div>
           </div>
         </div>

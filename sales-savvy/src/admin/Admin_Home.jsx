@@ -53,6 +53,19 @@ const Admin_Home = () => {
                             <i className="fas fa-arrow-right"></i>
                         </div>
                     </Link>
+                    <Link to="/admin/analytics" className="admin-card analytics-card">
+                        <div className="admin-card-icon">
+                            <i className="fas fa-chart-line"></i>
+                        </div>
+                        <h2 className="admin-card-title">Analytics Dashboard</h2>
+                        <p className="admin-card-description">
+                            View sales reports, user statistics, and business insights
+                        </p>
+                        <div className="admin-card-cta">
+                            <span>View Analytics</span>
+                            <i className="fas fa-arrow-right"></i>
+                        </div>
+                    </Link>
                 </div>
             </div>
         </div>

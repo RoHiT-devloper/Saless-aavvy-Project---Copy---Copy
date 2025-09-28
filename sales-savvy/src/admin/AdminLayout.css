@@ -1,0 +1,113 @@
+/* AdminLayout.css */
+:root {
+  --bg-primary: #f8f9fa;
+  --card-bg: #ffffff;
+  --bg-secondary: #f1f3f4;
+  --border-light: #e0e0e0;
+  --primary: #667eea;
+  --secondary: #764ba2;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --text-tertiary: #a0a0a0;
+  --input-bg: #ffffff;
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f1419;
+  --card-bg: #1e2328;
+  --bg-secondary: #2a2f36;
+  --border-light: #3a3f46;
+  --text-primary: #ffffff;
+  --text-secondary: #a0aec0;
+  --text-tertiary: #718096;
+  --input-bg: #2a2f36;
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.admin-layout {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  transition: all 0.3s ease;
+}
+
+.admin-main-content {
+  padding: 0;
+  min-height: calc(100vh - 120px);
+}
+
+/* Loading States */
+.analytics-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--border-light);
+  border-left: 4px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error States */
+.analytics-error {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--card-bg);
+  border-radius: 1rem;
+  margin: 2rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-light);
+}
+
+.analytics-error h3 {
+  color: var(--error);
+  margin-bottom: 1rem;
+}
+
+.analytics-error p {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.retry-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  background: var(--secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-main-content {
+    padding: 0;
+  }
+}
+
+/* Theme Transition */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}

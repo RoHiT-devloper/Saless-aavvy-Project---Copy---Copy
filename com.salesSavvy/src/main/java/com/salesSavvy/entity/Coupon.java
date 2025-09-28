@@ -33,14 +33,14 @@ public class Coupon {
         this.usageLimit = usageLimit;
     }
     
-    // Helper method to check if coupon is valid
-    public boolean isValid() {
-        LocalDateTime now = LocalDateTime.now();
-        return active && 
-               now.isAfter(validFrom) && 
-               now.isBefore(validTo) && 
-               (usageLimit == null || usedCount < usageLimit);
-    }
+// Add this method to your Coupon entity class
+public boolean isValid() {
+    LocalDateTime now = LocalDateTime.now();
+    return active && 
+           now.isAfter(validFrom) && 
+           now.isBefore(validTo) && 
+           (usageLimit == null || usedCount < usageLimit);
+}
     
     // Getters and setters
     public Long getId() { return id; }

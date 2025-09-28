@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './AddressManager.css';
+// import './AddressManager.css';
 
 const AddressManager = ({ onAddressSelect, showSelector = false }) => {
     const [addresses, setAddresses] = useState([]);

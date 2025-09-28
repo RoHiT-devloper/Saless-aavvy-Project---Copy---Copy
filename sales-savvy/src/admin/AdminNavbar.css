@@ -1,0 +1,243 @@
+/* AdminNavbar.css */
+:root {
+  --bg-primary: #f8f9fa;
+  --card-bg: #ffffff;
+  --bg-secondary: #f1f3f4;
+  --border-light: #e0e0e0;
+  --primary: #667eea;
+  --secondary: #764ba2;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --text-tertiary: #a0a0a0;
+  --input-bg: #ffffff;
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  --success: #51cf66;
+  --warning: #f59f00;
+  --error: #ff6b6b;
+  --info: #17a2b8;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f1419;
+  --card-bg: #1e2328;
+  --bg-secondary: #2a2f36;
+  --border-light: #3a3f46;
+  --text-primary: #ffffff;
+  --text-secondary: #a0aec0;
+  --text-tertiary: #718096;
+  --input-bg: #2a2f36;
+  --card-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.admin-navbar {
+  background: var(--card-bg);
+  padding: 1rem 2rem;
+  box-shadow: var(--card-shadow);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.admin-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-nav-brand h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.admin-nav-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.welcome-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.user-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.admin-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.theme-toggle {
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--primary);
+  color: white;
+  transform: rotate(15deg);
+}
+
+.logout-btn {
+  background: var(--error);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.admin-nav-links {
+  background: var(--card-bg);
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--card-shadow);
+}
+
+.nav-links-container {
+  display: flex;
+  gap: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--text-secondary);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  position: relative;
+  margin-right: 0.5rem;
+}
+
+.nav-link:hover {
+  color: var(--primary);
+  background: var(--bg-secondary);
+}
+
+.nav-link.active {
+  color: var(--primary);
+  background: rgba(102, 126, 234, 0.1);
+  font-weight: 600;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  border-radius: 1px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .admin-navbar {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .admin-nav-user {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .user-welcome {
+    align-items: center;
+  }
+
+  .nav-links-container {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-nav-brand h1 {
+    font-size: 1.25rem;
+  }
+
+  .nav-link {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .nav-link span {
+    display: none;
+  }
+
+  .nav-link i {
+    margin-right: 0;
+  }
+}
+
+/* Icons */
+.fas {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+}
+
+.fa-sun::before { content: "☀️"; font-family: initial; }
+.fa-moon::before { content: "🌙"; font-family: initial; }
+.fa-sign-out-alt::before { content: "🚪"; font-family: initial; }
+.fa-tachometer-alt::before { content: "📊"; font-family: initial; }
+.fa-chart-line::before { content: "📈"; font-family: initial; }
+.fa-users::before { content: "👥"; font-family: initial; }
+.fa-box::before { content: "📦"; font-family: initial; }
+.fa-shopping-cart::before { content: "🛒"; font-family: initial; }

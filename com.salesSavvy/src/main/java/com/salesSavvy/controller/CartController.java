@@ -22,30 +22,31 @@ public class CartController {
     @Autowired
     private UsersService usersService;
     
-    @GetMapping("/getCart")
-    public CartResponse getCart(@RequestParam String username) {
-        Users user = usersService.getUser(username);
-        if (user == null || user.getCart() == null) {
-            return new CartResponse(null, new ArrayList<>(), 0.0);
-        }
-        
-        CartResponse response = new CartResponse();
-        response.setId(user.getCart().getId());
-        
-        List<CartItemResponse> items = new ArrayList<>();
-        double total = 0.0;
-        
-        for (CartItem item : user.getCart().getItems()) {
+@GetMapping("/getCart")
+public CartResponse getCart(@RequestParam String username) {
+    Users user = usersService.getUser(username);
+    if (user == null || user.getCart() == null || user.getCart().getItems() == null) {
+        return new CartResponse(null, new ArrayList<>(), 0.0);
+    }
+    
+    CartResponse response = new CartResponse();
+    response.setId(user.getCart().getId());
+    
+    List<CartItemResponse> items = new ArrayList<>();
+    double total = 0.0;
+    
+    for (CartItem item : user.getCart().getItems()) {
+        if (item != null && item.getProduct() != null) {
             CartItemResponse itemResponse = new CartItemResponse(item.getProduct(), item.getQuantity());
             items.add(itemResponse);
             total += itemResponse.getItemTotal();
         }
-        
-        response.setItems(items);
-        response.setTotalPrice(total);
-        return response;
     }
     
+    response.setItems(items);
+    response.setTotalPrice(total);
+    return response;
+} 
     @DeleteMapping("/remove")
     public ResponseEntity<String> removeFromCart(@RequestParam Long productId, @RequestParam String username) {
         Users user = usersService.getUser(username);

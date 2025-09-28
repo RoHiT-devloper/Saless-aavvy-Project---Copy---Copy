@@ -37,16 +37,15 @@ public class Product {
     // private Cart cart;
   public Product() {}
 
-  public Product(Long id, String name, String description, int price, String photo, String category, List<String> reviews, Cart cart) {
-      this.id = id;
-      this.name = name;
-      this.description = description;
-      this.price = price;
-      this.photo = photo;
-      this.category = category;
-      this.reviews = reviews;
-  }
-
+public Product(Long id, String name, String description, int price, String photo, String category, List<String> reviews) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+    this.price = price;
+    this.photo = photo;
+    this.category = category;
+    this.reviews = reviews;
+}
   // Getters & Setters
   public Long getId() { return id; }
   public void setId(Long id) { this.id = id; }

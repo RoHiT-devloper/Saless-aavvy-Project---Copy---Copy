@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
-    Optional<Coupon> findByCode(String code);
+Optional<Coupon> findByCode(String code);
     
     @Query("SELECT c FROM Coupon c WHERE c.active = true AND c.validFrom <= :now AND c.validTo >= :now")
     List<Coupon> findActiveCoupons(@Param("now") LocalDateTime now);
