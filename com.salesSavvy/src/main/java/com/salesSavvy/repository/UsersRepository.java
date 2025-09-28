@@ -11,6 +11,6 @@ public interface UsersRepository extends JpaRepository<Users, Long> {
     Users findByPassword(String password);
     Users findByEmail(String email);
     
-    // Simple method name without @Query
+    // Analytics method
     List<Users> findTop1ByOrderByCreatedAtDesc();
 }

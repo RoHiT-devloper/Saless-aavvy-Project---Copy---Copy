@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -198,74 +199,132 @@ public class AnalyticsService {
         }
     }
 
+    // Enhanced Recent Activities with Real Timing
     private List<Map<String, Object>> getRecentActivities() {
         List<Map<String, Object>> activities = new ArrayList<>();
         
         try {
-            // 1. Recent Orders (last 2 orders)
-            List<Order> recentOrders = orderRepository.findTop2ByOrderByOrderDateDesc();
-            if (recentOrders != null) {
-                for (Order order : recentOrders) {
-                    if (order != null && order.getOrderDate() != null) {
-                        activities.add(createActivity(
-                            "order", 
-                            "New order #" + (order.getOrderId() != null ? order.getOrderId() : order.getId()) + " placed",
-                            order.getOrderDate()
-                        ));
-                    }
-                }
+            // 1. Get real orders with proper timing
+            List<Order> recentOrders = getRecentOrdersWithValidDates(3);
+            for (Order order : recentOrders) {
+                activities.add(createActivity(
+                    "order", 
+                    "New order #" + getOrderDisplayId(order) + " placed",
+                    order.getOrderDate()
+                ));
             }
             
-            // 2. Recent User Registrations (last user)
-            List<Users> recentUsers = usersRepository.findTop1ByOrderByCreatedAtDesc();
-            if (recentUsers != null && !recentUsers.isEmpty()) {
+            // 2. Get real user registrations
+            List<Users> recentUsers = getRecentUsers(1);
+            if (!recentUsers.isEmpty()) {
                 Users latestUser = recentUsers.get(0);
-                if (latestUser != null && latestUser.getCreatedAt() != null) {
-                    activities.add(createActivity(
-                        "user", 
-                        "New user registered: " + latestUser.getUsername(),
-                        latestUser.getCreatedAt()
-                    ));
-                }
+                activities.add(createActivity(
+                    "user", 
+                    "New user registered: " + latestUser.getUsername(),
+                    latestUser.getCreatedAt()
+                ));
             }
             
-            // 3. Recent Product Updates (last updated product)
-            List<Product> recentProducts = productRepository.findTop1ByOrderByUpdatedAtDesc();
-            if (recentProducts != null && !recentProducts.isEmpty()) {
+            // 3. Get real product updates
+            List<Product> recentProducts = getRecentProducts(1);
+            if (!recentProducts.isEmpty()) {
                 Product latestProduct = recentProducts.get(0);
-                if (latestProduct != null && latestProduct.getUpdatedAt() != null) {
-                    activities.add(createActivity(
-                        "product", 
-                        "Product '" + latestProduct.getName() + "' updated",
-                        latestProduct.getUpdatedAt()
-                    ));
-                }
+                activities.add(createActivity(
+                    "product", 
+                    "Product '" + latestProduct.getName() + "' updated",
+                    latestProduct.getUpdatedAt()
+                ));
             }
             
         } catch (Exception e) {
-            // Fallback with current time activities
-            activities.add(createActivity("system", "Analytics system started", LocalDateTime.now()));
+            // Use actual current time for fallback activities
+            return getRealTimeFallbackActivities();
         }
         
-        // Ensure we have at least 3 activities
-        while (activities.size() < 3) {
-            activities.add(createActivity(
-                "system", 
-                "SalesSavvy analytics initialized", 
-                LocalDateTime.now().minusHours(activities.size())
-            ));
+        return sortAndLimitActivities(activities, 4);
+    }
+
+    private List<Order> getRecentOrdersWithValidDates(int limit) {
+        try {
+            List<Order> allOrders = orderRepository.findAll();
+            return allOrders.stream()
+                    .filter(order -> order != null && order.getOrderDate() != null)
+                    .sorted((a, b) -> b.getOrderDate().compareTo(a.getOrderDate()))
+                    .limit(limit)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private List<Users> getRecentUsers(int limit) {
+        try {
+            List<Users> allUsers = usersRepository.findAll();
+            return allUsers.stream()
+                    .filter(user -> user != null && user.getCreatedAt() != null)
+                    .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                    .limit(limit)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private List<Product> getRecentProducts(int limit) {
+        try {
+            List<Product> allProducts = productRepository.findAll();
+            return allProducts.stream()
+                    .filter(product -> product != null && product.getUpdatedAt() != null)
+                    .sorted((a, b) -> b.getUpdatedAt().compareTo(a.getUpdatedAt()))
+                    .limit(limit)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private String getOrderDisplayId(Order order) {
+        if (order.getOrderId() != null && !order.getOrderId().trim().isEmpty()) {
+            return order.getOrderId();
+        }
+        return String.valueOf(order.getId());
+    }
+
+    private List<Map<String, Object>> getRealTimeFallbackActivities() {
+        List<Map<String, Object>> activities = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+        
+        // Create realistic fallback activities based on actual system state
+        long userCount = usersRepository.count();
+        long orderCount = orderRepository.count();
+        long productCount = productRepository.count();
+        
+        activities.add(createActivity("system", "SalesSavvy analytics initialized", now));
+        
+        if (orderCount > 0) {
+            activities.add(createActivity("order", orderCount + " orders processed in system", now.minusHours(2)));
         }
         
-        // Sort by timestamp (most recent first)
+        if (userCount > 0) {
+            activities.add(createActivity("user", userCount + " users registered", now.minusHours(4)));
+        }
+        
+        if (productCount > 0) {
+            activities.add(createActivity("product", productCount + " products in catalog", now.minusHours(6)));
+        }
+        
+        return sortAndLimitActivities(activities, 4);
+    }
+
+    private List<Map<String, Object>> sortAndLimitActivities(List<Map<String, Object>> activities, int limit) {
         return activities.stream()
                 .sorted((a, b) -> {
                     LocalDateTime timeA = (LocalDateTime) a.get("timestamp");
                     LocalDateTime timeB = (LocalDateTime) b.get("timestamp");
-                    return timeB.compareTo(timeA);
+                    return timeB.compareTo(timeA); // Most recent first
                 })
-                .limit(3)
+                .limit(limit)
                 .map(activity -> {
-                    // Remove timestamp from final response
                     Map<String, Object> cleanActivity = new HashMap<>();
                     cleanActivity.put("type", activity.get("type"));
                     cleanActivity.put("text", activity.get("text"));
@@ -284,6 +343,42 @@ public class AnalyticsService {
         return activity;
     }
 
+    // Improved Time Calculation Algorithm
+    private String calculateTimeAgo(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "Recently";
+        }
+        
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            Duration duration = Duration.between(dateTime, now);
+            
+            long seconds = duration.getSeconds();
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+            long weeks = days / 7;
+            long months = days / 30;
+            
+            if (seconds < 60) {
+                return "Just now";
+            } else if (minutes < 60) {
+                return minutes + (minutes == 1 ? " minute ago" : " minutes ago");
+            } else if (hours < 24) {
+                return hours + (hours == 1 ? " hour ago" : " hours ago");
+            } else if (days < 7) {
+                return days + (days == 1 ? " day ago" : " days ago");
+            } else if (weeks < 4) {
+                return weeks + (weeks == 1 ? " week ago" : " weeks ago");
+            } else {
+                return months + (months == 1 ? " month ago" : " months ago");
+            }
+        } catch (Exception e) {
+            return "Recently";
+        }
+    }
+
+    // Enhanced Sales Trend Algorithm
     private Map<String, Object> getSalesData(TimeRange range) {
         Map<String, Object> salesData = new HashMap<>();
         
@@ -291,36 +386,110 @@ public class AnalyticsService {
             List<Order> orders = orderRepository.findByOrderDateBetween(range.startDate, range.endDate);
             
             if (orders == null || orders.isEmpty()) {
-                // Return empty data structure
-                salesData.put("data", Arrays.asList(0.0));
-                salesData.put("labels", Arrays.asList("No Data"));
-                return salesData;
+                return getEmptySalesData(range);
             }
             
-            // Simple grouping by day
-            Map<String, Double> dailySales = new TreeMap<>();
+            // Group sales by period using enhanced algorithm
+            Map<String, Double> periodSales = groupSalesByPeriod(orders, range);
             
-            for (Order order : orders) {
-                if (order != null && order.getOrderDate() != null && order.getTotalAmount() != null) {
-                    String dayKey = order.getOrderDate().getDayOfMonth() + "/" + order.getOrderDate().getMonthValue();
-                    double amount = order.getTotalAmount();
-                    dailySales.put(dayKey, dailySales.getOrDefault(dayKey, 0.0) + amount);
-                }
-            }
+            // Fill missing periods with zero
+            periodSales = fillMissingPeriods(periodSales, range);
             
-            List<Double> data = new ArrayList<>(dailySales.values());
-            List<String> labels = new ArrayList<>(dailySales.keySet());
+            // Convert to sorted lists
+            List<String> labels = new ArrayList<>(periodSales.keySet());
+            List<Double> data = labels.stream()
+                    .map(periodSales::get)
+                    .collect(Collectors.toList());
             
             salesData.put("data", data);
             salesData.put("labels", labels);
+            salesData.put("totalPeriods", periodSales.size());
             
         } catch (Exception e) {
-            // Fallback data
-            salesData.put("data", Arrays.asList(0.0, 0.0, 0.0));
-            salesData.put("labels", Arrays.asList("Mon", "Tue", "Wed"));
+            return getEmptySalesData(range);
         }
         
         return salesData;
+    }
+
+    private Map<String, Double> groupSalesByPeriod(List<Order> orders, TimeRange range) {
+        Map<String, Double> periodSales = new LinkedHashMap<>();
+        
+        for (Order order : orders) {
+            if (order != null && order.getOrderDate() != null && order.getTotalAmount() != null) {
+                String periodKey = getPeriodKey(order.getOrderDate(), range.unit);
+                Double currentAmount = periodSales.getOrDefault(periodKey, 0.0);
+                periodSales.put(periodKey, currentAmount + order.getTotalAmount());
+            }
+        }
+        
+        return periodSales;
+    }
+
+    private Map<String, Double> fillMissingPeriods(Map<String, Double> periodSales, TimeRange range) {
+        Map<String, Double> filledSales = new LinkedHashMap<>();
+        
+        LocalDateTime current = range.startDate;
+        while (!current.isAfter(range.endDate)) {
+            String periodKey = getPeriodKey(current, range.unit);
+            filledSales.put(periodKey, periodSales.getOrDefault(periodKey, 0.0));
+            current = getNextPeriod(current, range.unit);
+        }
+        
+        return filledSales;
+    }
+
+    private String getPeriodKey(LocalDateTime dateTime, ChronoUnit unit) {
+        switch (unit) {
+            case HOURS:
+                return String.format("%02d/%02d %02d:00", 
+                    dateTime.getDayOfMonth(), 
+                    dateTime.getMonthValue(),
+                    dateTime.getHour());
+            case DAYS:
+                return String.format("%02d/%02d", 
+                    dateTime.getDayOfMonth(), 
+                    dateTime.getMonthValue());
+            default:
+                return String.format("%02d/%02d", 
+                    dateTime.getDayOfMonth(), 
+                    dateTime.getMonthValue());
+        }
+    }
+
+    private LocalDateTime getNextPeriod(LocalDateTime current, ChronoUnit unit) {
+        switch (unit) {
+            case HOURS:
+                return current.plusHours(1);
+            case DAYS:
+                return current.plusDays(1);
+            default:
+                return current.plusDays(1);
+        }
+    }
+
+    private Map<String, Object> getEmptySalesData(TimeRange range) {
+        Map<String, Object> emptyData = new HashMap<>();
+        
+        // Generate empty data points for the entire range
+        List<Double> data = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+        
+        LocalDateTime current = range.startDate;
+        int pointCount = 0;
+        
+        while (!current.isAfter(range.endDate) && pointCount < 30) { // Max 30 points
+            labels.add(getPeriodKey(current, range.unit));
+            data.add(0.0);
+            current = getNextPeriod(current, range.unit);
+            pointCount++;
+        }
+        
+        emptyData.put("data", data);
+        emptyData.put("labels", labels);
+        emptyData.put("totalPeriods", pointCount);
+        
+        return emptyData;
     }
 
     // Helper classes and methods
@@ -338,27 +507,26 @@ public class AnalyticsService {
 
     private TimeRange getTimeRange(String range) {
         LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDate;
+        ChronoUnit unit;
+        
         switch (range.toLowerCase()) {
             case "daily":
-                return new TimeRange(
-                    now.minusDays(1),
-                    now,
-                    ChronoUnit.HOURS
-                );
+                startDate = now.minusDays(1);
+                unit = ChronoUnit.HOURS;
+                break;
             case "weekly":
-                return new TimeRange(
-                    now.minusWeeks(1),
-                    now,
-                    ChronoUnit.DAYS
-                );
+                startDate = now.minusWeeks(1);
+                unit = ChronoUnit.DAYS;
+                break;
             case "monthly":
             default:
-                return new TimeRange(
-                    now.minusMonths(1),
-                    now,
-                    ChronoUnit.DAYS
-                );
+                startDate = now.minusMonths(1);
+                unit = ChronoUnit.DAYS;
+                break;
         }
+        
+        return new TimeRange(startDate, now, unit);
     }
 
     private TimeRange getPreviousTimeRange(TimeRange currentRange) {
@@ -374,34 +542,6 @@ public class AnalyticsService {
             currentRange.startDate,
             currentRange.unit
         );
-    }
-
-    private String calculateTimeAgo(LocalDateTime dateTime) {
-        if (dateTime == null) {
-            return "Recently";
-        }
-        
-        try {
-            LocalDateTime now = LocalDateTime.now();
-            long seconds = java.time.Duration.between(dateTime, now).getSeconds();
-            long minutes = seconds / 60;
-            long hours = minutes / 60;
-            long days = hours / 24;
-            
-            if (seconds < 60) {
-                return "Just now";
-            } else if (minutes < 60) {
-                return minutes + " minute" + (minutes > 1 ? "s" : "") + " ago";
-            } else if (hours < 24) {
-                return hours + " hour" + (hours > 1 ? "s" : "") + " ago";
-            } else if (days < 7) {
-                return days + " day" + (days > 1 ? "s" : "") + " ago";
-            } else {
-                return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy"));
-            }
-        } catch (Exception e) {
-            return "Recently";
-        }
     }
 
     // Fallback methods for when data is not available

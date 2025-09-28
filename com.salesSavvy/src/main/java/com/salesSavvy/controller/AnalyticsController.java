@@ -27,4 +27,21 @@ public class AnalyticsController {
             ));
         }
     }
+
+    @GetMapping("/sales")
+    public ResponseEntity<?> getSalesAnalytics(
+            @RequestParam(defaultValue = "monthly") String timeRange) {
+        try {
+            Map<String, Object> analytics = analyticsService.getDashboardAnalytics(timeRange);
+            // Extract only sales-related data
+            Map<String, Object> salesData = Map.of(
+                "salesData", analytics.get("salesData"),
+                "totalRevenue", analytics.get("totalRevenue"),
+                "totalOrders", analytics.get("totalOrders")
+            );
+            return ResponseEntity.ok(salesData);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Unable to load sales data"));
+        }
+    }
 }
