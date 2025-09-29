@@ -16,6 +16,8 @@ const CustomerPage = () => {
   const [orders, setOrders] = useState([]);
   const [orderHistoryLoading, setOrderHistoryLoading] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [showWishlist, setShowWishlist] = useState(false);
 
   // Check theme preference on component mount
   useEffect(() => {
@@ -32,6 +34,7 @@ const CustomerPage = () => {
     }
     
     fetchCartItems();
+    fetchWishlistItems();
   }, [location.state]);
 
   const fetchProductsFromAPI = async () => {
@@ -47,6 +50,21 @@ const CustomerPage = () => {
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWishlistItems = async () => {
+    const username = localStorage.getItem("username");
+    if (!username) return;
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/wishlist/${username}`);
+      if (response.ok) {
+        const data = await response.json();
+        setWishlistItems(data);
+      }
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
     }
   };
 
@@ -154,7 +172,6 @@ const CustomerPage = () => {
       if (!response.ok) {
         throw new Error("Failed to add product to cart");
       } else {
-        // Show success notification instead of alert
         showNotification(`Added ${product.name} (x${qty}) to cart!`, 'success');
         
         setQuantities(prev => ({
@@ -170,9 +187,91 @@ const CustomerPage = () => {
     }
   };
 
+  const toggleWishlist = () => {
+    setShowWishlist(!showWishlist);
+  };
+
+  const addToWishlist = async (product) => {
+    const username = localStorage.getItem("username");
+    if (!username) {
+      showNotification("Please log in to add to wishlist", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/wishlist/add?username=${username}&productId=${product.id}`, {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        showNotification(`Added ${product.name} to wishlist!`, "success");
+        fetchWishlistItems();
+      } else {
+        showNotification("Failed to add to wishlist", "error");
+      }
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      showNotification("Error adding to wishlist", "error");
+    }
+  };
+
+  const removeFromWishlist = async (productId) => {
+    const username = localStorage.getItem('username');
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/wishlist/remove?username=${username}&productId=${productId}`,
+        { method: 'DELETE' }
+      );
+
+      if (response.ok) {
+        setWishlistItems(wishlistItems.filter(item => item.id !== productId));
+        showNotification('Item removed from wishlist', 'success');
+      }
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      showNotification('Error removing item from wishlist', 'error');
+    }
+  };
+
+  const addToCartFromWishlist = async (product) => {
+    const username = localStorage.getItem("username");
+    if (!username) {
+      showNotification("Please log in to add to cart", "error");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8080/api/cart/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          username: username,
+          quantity: 1,
+        }),
+      });
+
+      if (response.ok) {
+        showNotification(`Added ${product.name} to cart!`, "success");
+        removeFromWishlist(product.id);
+        fetchCartItems();
+      } else {
+        showNotification("Failed to add to cart", "error");
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      showNotification("Error adding to cart", "error");
+    }
+  };
+
+  const isInWishlist = (productId) => {
+    return wishlistItems.some(item => item.id === productId);
+  };
+
   // Notification system
   const showNotification = (message, type = 'info') => {
-    // Remove existing notification
     const existingNotification = document.querySelector('.notification');
     if (existingNotification) {
       existingNotification.remove();
@@ -187,7 +286,6 @@ const CustomerPage = () => {
     
     document.body.appendChild(notification);
     
-    // Auto remove after 3 seconds
     setTimeout(() => {
       if (notification.parentElement) {
         notification.remove();
@@ -362,7 +460,7 @@ const formatDate = (dateString) => {
     <div className="customer-container">
       <CartIcon />
       
-      {/* Welcome Header with User Info */}
+      {/* Enhanced Welcome Header with Wishlist Icon */}
       <div className="welcome-header">
         <div className="welcome-content">
           <h1 className="customer-title">
@@ -370,17 +468,111 @@ const formatDate = (dateString) => {
           </h1>
           <p className="welcome-subtitle">Discover amazing products tailored for you</p>
         </div>
-        <div className="welcome-stats">
-          <div className="stat-card">
-            <span className="stat-number">{products.length}</span>
-            <span className="stat-label">Total Products</span>
+        <div className="header-actions">
+          <div className="welcome-stats">
+            <div className="stat-card">
+              <span className="stat-number">{products.length}</span>
+              <span className="stat-label">Total Products</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-number">{cartItems.length}</span>
+              <span className="stat-label">Cart Items</span>
+            </div>
           </div>
-          <div className="stat-card">
-            <span className="stat-number">{cartItems.length}</span>
-            <span className="stat-label">Cart Items</span>
+          
+          {/* Wishlist Icon */}
+          <div className="wishlist-icon-container" onClick={toggleWishlist}>
+            <div className="wishlist-icon">
+              ❤️
+              {wishlistItems.length > 0 && (
+                <span className="wishlist-count-badge">{wishlistItems.length}</span>
+              )}
+            </div>
+            <span className="wishlist-label">Wishlist</span>
           </div>
         </div>
       </div>
+
+      {/* Wishlist Popup */}
+      {showWishlist && (
+        <div className="wishlist-popup-overlay" onClick={() => setShowWishlist(false)}>
+          <div className="wishlist-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="wishlist-popup-header">
+              <h3>My Wishlist ({wishlistItems.length})</h3>
+              <button 
+                className="close-popup-btn"
+                onClick={() => setShowWishlist(false)}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="wishlist-popup-content">
+              {wishlistItems.length === 0 ? (
+                <div className="empty-wishlist-popup">
+                  <div className="empty-icon">❤️</div>
+                  <h4>Your wishlist is empty</h4>
+                  <p>Save items you love for later</p>
+                  <button 
+                    onClick={() => {
+                      setShowWishlist(false);
+                    }} 
+                    className="shop-now-btn"
+                  >
+                    Browse Products
+                  </button>
+                </div>
+              ) : (
+                <div className="wishlist-popup-items">
+                  {wishlistItems.map(product => (
+                    <div key={product.id} className="wishlist-popup-item">
+                      <div className="popup-product-image">
+                        {product.photo ? (
+                          <img src={product.photo} alt={product.name} />
+                        ) : (
+                          <div className="image-placeholder">📷</div>
+                        )}
+                      </div>
+                      <div className="popup-product-details">
+                        <h5>{product.name}</h5>
+                        <p className="popup-price">Rs.{product.price}</p>
+                        <p className="popup-category">{product.category}</p>
+                      </div>
+                      <div className="popup-actions">
+                        <button 
+                          onClick={() => addToCartFromWishlist(product)}
+                          className="popup-add-to-cart-btn"
+                        >
+                          Add to Cart
+                        </button>
+                        <button 
+                          onClick={() => removeFromWishlist(product.id)}
+                          className="popup-remove-btn"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {wishlistItems.length > 0 && (
+              <div className="wishlist-popup-footer">
+                <button 
+                  onClick={() => {
+                    setShowWishlist(false);
+                  }} 
+                  className="view-full-wishlist-btn"
+                >
+                  Continue Shopping
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Main Tabs */}
       <div className="customer-tabs">
@@ -536,91 +728,100 @@ const formatDate = (dateString) => {
               </div>
             </div>
           ) : (
-<div className="customer-products-grid">
-  {filteredProducts.map((product) => {
-    const qty = quantities[product.id] || 1;
-    const total = qty * product.price;
-    const cartQty = getCartQuantity(product.id);
+            <div className="customer-products-grid">
+              {filteredProducts.map((product) => {
+                const qty = quantities[product.id] || 1;
+                const total = qty * product.price;
+                const cartQty = getCartQuantity(product.id);
+                const inWishlist = isInWishlist(product.id);
 
-    return (
-      <div key={product.id} className="customer-card">
-        {/* Product Image Section */}
-        <div className="product-image-section">
-          <div className="customer-image">
-            {product.photo ? (
-              <img
-                src={product.photo}
-                alt={product.name}
-                onError={(e) => {
-                  e.target.style.display = "none";
-                  e.target.nextSibling.style.display = "block";
-                }}
-              />
-            ) : null}
-            <div 
-              className="image-placeholder"
-              style={{display: product.photo ? 'none' : 'flex'}}
-            >
-              📷
-            </div>
-          </div>
-          <div className="product-badge">{product.category}</div>
-        </div>
+                return (
+                  <div key={product.id} className="customer-card">
+                    {/* Product Image Section */}
+                    <div className="product-image-section">
+                      <div className="customer-image">
+                        {product.photo ? (
+                          <img
+                            src={product.photo}
+                            alt={product.name}
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                              e.target.nextSibling.style.display = "block";
+                            }}
+                          />
+                        ) : null}
+                        <div 
+                          className="image-placeholder"
+                          style={{display: product.photo ? 'none' : 'flex'}}
+                        >
+                          📷
+                        </div>
+                      </div>
+                      <div className="product-badge">{product.category}</div>
+                    </div>
 
-        {/* Product Details Section */}
-        <div className="product-details-section">
-          <div className="product-header">
-            <div className="product-info">
-              <h3 className="product-name">{product.name}</h3>
-              <p className="product-description">{product.description}</p>
-            </div>
-            <div className="product-price">
-              <span className="price">Rs.{product.price}</span>
-              <span className="price-unit">per unit</span>
-            </div>
-          </div>
+                    {/* Product Details Section */}
+                    <div className="product-details-section">
+                      <div className="product-header">
+                        <div className="product-info">
+                          <h3 className="product-name">{product.name}</h3>
+                          <p className="product-description">{product.description}</p>
+                        </div>
+                        <div className="product-price">
+                          <span className="price">Rs.{product.price}</span>
+                          <span className="price-unit">per unit</span>
+                        </div>
+                      </div>
 
-          {/* Product Controls Section */}
-          <div className="product-controls-section">
-            <div className="quantity-section">
-              <span className="quantity-label">Quantity:</span>
-              <div className="customer-quantity">
-                <button 
-                  onClick={() => changeQuantity(product.id, -1)}
-                  disabled={qty <= 1}
-                >
-                  −
-                </button>
-                <span>{qty}</span>
-                <button onClick={() => changeQuantity(product.id, 1)}>
-                  +
-                </button>
-              </div>
-            </div>
+                      {/* Product Controls Section */}
+                      <div className="product-controls-section">
+                        <div className="quantity-section">
+                          <span className="quantity-label">Quantity:</span>
+                          <div className="customer-quantity">
+                            <button 
+                              onClick={() => changeQuantity(product.id, -1)}
+                              disabled={qty <= 1}
+                            >
+                              −
+                            </button>
+                            <span>{qty}</span>
+                            <button onClick={() => changeQuantity(product.id, 1)}>
+                              +
+                            </button>
+                          </div>
+                        </div>
 
-            <div className="cart-status">
-              <div className="cart-indicator">
-                {cartQty > 0 && (
-                  <span className="cart-badge">In Cart: {cartQty}</span>
-                )}
-                <div className="total-price">
-                  <span className="total-label">Total:</span>
-                  <span className="total-amount">Rs.{total}</span>
-                </div>
-              </div>
-              <button
-                className={`customer-add-to-cart ${cartQty > 0 ? 'in-cart' : ''}`}
-                onClick={() => handleAddToCart(product)}
-              >
-                {cartQty > 0 ? 'Update Cart' : 'Add to Cart'}
-              </button>
+                        <div className="cart-status">
+                          <div className="cart-indicator">
+                            {cartQty > 0 && (
+                              <span className="cart-badge">In Cart: {cartQty}</span>
+                            )}
+                            <div className="total-price">
+                              <span className="total-label">Total:</span>
+                              <span className="total-amount">Rs.{total}</span>
+                            </div>
+                          </div>
+                          <div className="action-buttons">
+                            <button
+                              className={`customer-add-to-cart ${cartQty > 0 ? 'in-cart' : ''}`}
+                              onClick={() => handleAddToCart(product)}
+                            >
+                              {cartQty > 0 ? 'Update Cart' : 'Add to Cart'}
+                            </button>
+                            <button 
+                              onClick={() => inWishlist ? removeFromWishlist(product.id) : addToWishlist(product)}
+                              className={`wishlist-btn ${inWishlist ? 'in-wishlist' : ''}`}
+                            >
+                              {inWishlist ? '❤️' : '🤍'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  })}
-</div>
           )}
         </>
       )}
