@@ -22,6 +22,9 @@ public class OrderServiceImpl implements OrderService {
     
     @Override
     public Order saveOrder(Order order) {
+        // Ensure order date is not set by frontend - let @PrePersist handle it
+        order.setOrderDate(null);
+        
         Order savedOrder = orderRepository.save(order);
         
         // Log the activity
@@ -47,7 +50,6 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByOrderId(orderId);
     }
     
-    // Add these implementations
     @Override
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -64,7 +66,7 @@ public class OrderServiceImpl implements OrderService {
 
             // Log the activity
             activityLogService.logActivity(
-                ActivityLogService.ORDER_PLACED, // We can create ORDER_STATUS_CHANGED if needed
+                ActivityLogService.ORDER_PLACED,
                 "Order #" + updatedOrder.getOrderId() + " status changed from " + oldStatus + " to " + status,
                 "admin",
                 updatedOrder.getOrderId(),
@@ -73,6 +75,6 @@ public class OrderServiceImpl implements OrderService {
             
             return updatedOrder;
         }
-        return null; // Or throw an exception
+        return null;
     }
 }

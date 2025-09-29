@@ -23,6 +23,31 @@ const AdminOrders = () => {
     updateStats();
   }, [orders]);
 
+  const formatOrderDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    
+    try {
+        const date = new Date(dateString);
+        
+        // Convert to IST (UTC+5:30)
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const istTime = new Date(date.getTime() + istOffset);
+        
+        return istTime.toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        console.error('Date formatting error:', error);
+        return dateString;
+    }
+};
+
+
   const fetchAllOrders = async () => {
     try {
       setLoading(true);
@@ -361,14 +386,7 @@ const AdminOrders = () => {
                     <h3 className="order-id">Order #{order.orderId}</h3>
                     <p className="order-date">
                         <span className="info-icon">📅</span>
-                        {new Date(order.orderDate).toLocaleString('en-IN', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            timeZone: 'Asia/Kolkata'
-                        })}
+                        {formatOrderDate(order.orderDate)}
                     </p>
                   </div>
                   

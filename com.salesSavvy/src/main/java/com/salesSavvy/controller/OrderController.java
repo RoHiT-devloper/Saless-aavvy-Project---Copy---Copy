@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-
 @RequestMapping("/api/orders")
 public class OrderController {
     
@@ -18,6 +17,8 @@ public class OrderController {
     
     @PostMapping("/save")
     public ResponseEntity<Order> saveOrder(@RequestBody Order order) {
+        // Clear any order date sent from frontend to ensure backend sets it correctly
+        order.setOrderDate(null);
         Order savedOrder = orderService.saveOrder(order);
         return ResponseEntity.ok(savedOrder);
     }
@@ -37,8 +38,6 @@ public class OrderController {
             return ResponseEntity.notFound().build();
         }
     }
-    
-    // Add these endpoints
     
     @GetMapping
     public ResponseEntity<List<Order>> getAllOrders() {

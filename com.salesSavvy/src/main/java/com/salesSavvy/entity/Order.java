@@ -16,7 +16,10 @@ public class Order {
     private String username;
     private String customerName;
     private String customerEmail;
+    
+    @Column(name = "order_date")
     private LocalDateTime orderDate;
+    
     private Double totalAmount;
     private String status; // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
     private String shippingAddress;
@@ -36,11 +39,18 @@ public class Order {
         this.username = username;
         this.customerName = customerName;
         this.customerEmail = customerEmail;
-        this.orderDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
         this.totalAmount = totalAmount;
         this.status = status;
         this.shippingAddress = shippingAddress;
         this.items = items;
+    }
+    
+    // PrePersist to set the order date automatically
+    @PrePersist
+    protected void onCreate() {
+        if (this.orderDate == null) {
+            this.orderDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+        }
     }
     
     // Getters and Setters

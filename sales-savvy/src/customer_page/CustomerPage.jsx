@@ -322,13 +322,29 @@ const CustomerPage = () => {
   };
 
 const formatDate = (dateString) => {
-    const options = { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric',
-        timeZone: 'Asia/Kolkata'
-    };
-    return new Date(dateString).toLocaleDateString('en-IN', options);
+    if (!dateString) return 'N/A';
+    
+    try {
+        const date = new Date(dateString);
+        
+        // Convert to IST (UTC+5:30)
+        const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+        const istTime = new Date(date.getTime() + istOffset);
+        
+        const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Asia/Kolkata'
+        };
+        
+        return istTime.toLocaleDateString('en-IN', options);
+    } catch (error) {
+        console.error('Date formatting error:', error);
+        return dateString;
+    }
 };
 
   if (loading) {
