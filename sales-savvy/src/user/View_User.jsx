@@ -94,18 +94,23 @@ const View_User = () => {
         fetchUsers();
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        try {
-            const date = new Date(dateString);
-            if (isNaN(date.getTime())) {
-                return dateString;
-            }
-            return date.toLocaleDateString('en-GB');
-        } catch (error) {
+const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
             return dateString;
         }
-    };
+        return date.toLocaleDateString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (error) {
+        return dateString;
+    }
+};
 
     const getInitials = (username) => {
         if (!username) return '??';

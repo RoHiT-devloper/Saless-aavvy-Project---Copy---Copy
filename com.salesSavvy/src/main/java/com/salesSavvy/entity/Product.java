@@ -1,6 +1,7 @@
 package com.salesSavvy.entity;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import jakarta.persistence.Column;
@@ -9,7 +10,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-
 
 @Entity
 public class Product {
@@ -30,66 +30,64 @@ public class Product {
     private Integer salesCount = 0;
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 
     @ElementCollection
     private List<String> reviews;
 
-    // REMOVE this entire section:
-    // @ManyToOne
-    // @JsonBackReference
-    // private Cart cart;
-  public Product() {}
+    public Product() {}
 
-public Product(Long id, String name, String description, int price, String photo, String category, List<String> reviews) {
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.price = price;
-    this.photo = photo;
-    this.category = category;
-    this.reviews = reviews;
-}
-  // Getters & Setters
-  public Long getId() { return id; }
-  public void setId(Long id) { this.id = id; }
+    public Product(Long id, String name, String description, int price, String photo, String category, List<String> reviews) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.photo = photo;
+        this.category = category;
+        this.reviews = reviews;
+        this.updatedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+    }
 
-  public String getName() { return name; }
-  public void setName(String name) { this.name = name; }
+    // Getters & Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-  public String getDescription() { return description; }
-  public void setDescription(String description) { this.description = description; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-  public int getPrice() { return price; }
-  public void setPrice(int price) { this.price = price; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-  public String getPhoto() { return photo; }
-  public void setPhoto(String photo) { this.photo = photo; }
+    public int getPrice() { return price; }
+    public void setPrice(int price) { this.price = price; }
 
-  public String getCategory() { return category; }
-  public void setCategory(String category) { this.category = category; }
+    public String getPhoto() { return photo; }
+    public void setPhoto(String photo) { this.photo = photo; }
 
-  public List<String> getReviews() { return reviews; }
-  public void setReviews(List<String> reviews) { this.reviews = reviews; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-  public Integer getStockQuantity() { return stockQuantity; }
-  public void setStockQuantity(Integer stockQuantity) { 
-      this.stockQuantity = stockQuantity; 
-      this.inStock = stockQuantity > 0;
-  }
+    public List<String> getReviews() { return reviews; }
+    public void setReviews(List<String> reviews) { this.reviews = reviews; }
 
-  public Integer getLowStockThreshold() { return lowStockThreshold; }
-  public void setLowStockThreshold(Integer lowStockThreshold) { 
-      this.lowStockThreshold = lowStockThreshold; 
-  }
+    public Integer getStockQuantity() { return stockQuantity; }
+    public void setStockQuantity(Integer stockQuantity) { 
+        this.stockQuantity = stockQuantity; 
+        this.inStock = stockQuantity > 0;
+    }
 
-  public Boolean getInStock() { return inStock; }
-  public void setInStock(Boolean inStock) { this.inStock = inStock; }
+    public Integer getLowStockThreshold() { return lowStockThreshold; }
+    public void setLowStockThreshold(Integer lowStockThreshold) { 
+        this.lowStockThreshold = lowStockThreshold; 
+    }
 
-  public Integer getSalesCount() { return salesCount; }
-  public void setSalesCount(Integer salesCount) { this.salesCount = salesCount; }
+    public Boolean getInStock() { return inStock; }
+    public void setInStock(Boolean inStock) { this.inStock = inStock; }
 
-  public LocalDateTime getUpdatedAt() {
+    public Integer getSalesCount() { return salesCount; }
+    public void setSalesCount(Integer salesCount) { this.salesCount = salesCount; }
+
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
@@ -97,15 +95,13 @@ public Product(Long id, String name, String description, int price, String photo
         this.updatedAt = updatedAt;
     }
 
-@Override
-public String toString() {
-    return "Product{" +
-            "id=" + id +
-            ", name='" + name + '\'' +
-            ", price=" + price +
-            ", category='" + category + '\'' +
-            '}'; 
-}
-   
-
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", price=" + price +
+                ", category='" + category + '\'' +
+                '}'; 
+    }
 }

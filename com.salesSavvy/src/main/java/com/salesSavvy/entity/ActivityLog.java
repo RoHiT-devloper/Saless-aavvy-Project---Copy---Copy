@@ -2,6 +2,7 @@ package com.salesSavvy.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "activity_logs")
@@ -28,7 +29,7 @@ public class ActivityLog {
         this.username = username;
         this.entityId = entityId;
         this.entityType = entityType;
-        this.activityTime = LocalDateTime.now();
+        this.activityTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
     }
     
     public ActivityLog(String activityType, String description, String username, 

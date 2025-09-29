@@ -2,6 +2,7 @@ package com.salesSavvy.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "coupons")
@@ -35,7 +36,7 @@ public class Coupon {
     
 // Add this method to your Coupon entity class
 public boolean isValid() {
-    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
     return active && 
            now.isAfter(validFrom) && 
            now.isBefore(validTo) && 

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -48,6 +49,7 @@ public class ForgotPasswordController {
         }
     }
 
+// In the ForgotPasswordController.java, update OTP expiration time
 @PostMapping("/forgot-password")
 public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request) {
     String email = request.get("email");
@@ -72,7 +74,7 @@ public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> request
     
     // Generate OTP
     String otp = generateOtp();
-    LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(10);
+    LocalDateTime expirationTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata")).plusMinutes(10);
     
     // Store OTP with expiration
     otpStorage.put(email, new OtpData(otp, expirationTime));

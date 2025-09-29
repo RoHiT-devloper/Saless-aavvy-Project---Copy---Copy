@@ -5,6 +5,7 @@ import com.salesSavvy.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.time.Duration;
 import java.util.*;
@@ -264,43 +265,42 @@ public class AnalyticsService {
         return activity;
     }
 
-    // Improved Time Calculation Algorithm
-    private String calculateTimeAgo(LocalDateTime dateTime) {
-        if (dateTime == null) {
-            return "Recently";
-        }
-        
-        try {
-            LocalDateTime now = LocalDateTime.now();
-            Duration duration = Duration.between(dateTime, now);
-            
-            long seconds = Math.abs(duration.getSeconds());
-            long minutes = seconds / 60;
-            long hours = minutes / 60;
-            long days = hours / 24;
-            
-            if (seconds < 60) {
-                return "Just now";
-            } else if (minutes < 60) {
-                return minutes + (minutes == 1 ? " minute ago" : " minutes ago");
-            } else if (hours < 24) {
-                return hours + (hours == 1 ? " hour ago" : " hours ago");
-            } else if (days < 7) {
-                return days + (days == 1 ? " day ago" : " days ago");
-            } else if (days < 30) {
-                long weeks = days / 7;
-                return weeks + (weeks == 1 ? " week ago" : " weeks ago");
-            } else if (days < 365) {
-                long months = days / 30;
-                return months + (months == 1 ? " month ago" : " months ago");
-            } else {
-                long years = days / 365;
-                return years + (years == 1 ? " year ago" : " years ago");
-            }
-        } catch (Exception e) {
-            return "Recently";
-        }
+private String calculateTimeAgo(LocalDateTime dateTime) {
+    if (dateTime == null) {
+        return "Recently";
     }
+    
+    try {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+        Duration duration = Duration.between(dateTime, now);
+        
+        long seconds = Math.abs(duration.getSeconds());
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        long days = hours / 24;
+        
+        if (seconds < 60) {
+            return "Just now";
+        } else if (minutes < 60) {
+            return minutes + (minutes == 1 ? " minute ago" : " minutes ago");
+        } else if (hours < 24) {
+            return hours + (hours == 1 ? " hour ago" : " hours ago");
+        } else if (days < 7) {
+            return days + (days == 1 ? " day ago" : " days ago");
+        } else if (days < 30) {
+            long weeks = days / 7;
+            return weeks + (weeks == 1 ? " week ago" : " weeks ago");
+        } else if (days < 365) {
+            long months = days / 30;
+            return months + (months == 1 ? " month ago" : " months ago");
+        } else {
+            long years = days / 365;
+            return years + (years == 1 ? " year ago" : " years ago");
+        }
+    } catch (Exception e) {
+        return "Recently";
+    }
+}
 
     // Enhanced Sales Trend Algorithm
     private Map<String, Object> getSalesData(TimeRange range) {
@@ -429,30 +429,31 @@ public class AnalyticsService {
         }
     }
 
-    private TimeRange getTimeRange(String range) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startDate;
-        ChronoUnit unit;
-        
-        switch (range.toLowerCase()) {
-            case "daily":
-                startDate = now.minusDays(1);
-                unit = ChronoUnit.HOURS;
-                break;
-            case "weekly":
-                startDate = now.minusWeeks(1);
-                unit = ChronoUnit.DAYS;
-                break;
-            case "monthly":
-            default:
-                startDate = now.minusMonths(1);
-                unit = ChronoUnit.DAYS;
-                break;
-        }
-        
-        return new TimeRange(startDate, now, unit);
-    }
 
+// And in the getTimeRange method:
+private TimeRange getTimeRange(String range) {
+    LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+    LocalDateTime startDate;
+    ChronoUnit unit;
+    
+    switch (range.toLowerCase()) {
+        case "daily":
+            startDate = now.minusDays(1);
+            unit = ChronoUnit.HOURS;
+            break;
+        case "weekly":
+            startDate = now.minusWeeks(1);
+            unit = ChronoUnit.DAYS;
+            break;
+        case "monthly":
+        default:
+            startDate = now.minusMonths(1);
+            unit = ChronoUnit.DAYS;
+            break;
+    }
+    
+    return new TimeRange(startDate, now, unit);
+}
     private TimeRange getPreviousTimeRange(TimeRange currentRange) {
         long amount = 1;
         switch (currentRange.unit) {

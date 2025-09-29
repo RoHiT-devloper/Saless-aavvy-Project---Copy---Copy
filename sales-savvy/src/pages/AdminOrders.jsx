@@ -81,8 +81,9 @@ const AdminOrders = () => {
       <div class="bill-receipt">
         <div class="bill-header">
           <h1>SalesSavvy Store</h1>
-          <p>123 Shopping Street, Retail City</p>
+          <p>Kolkata, West Bengal, India</p>
           <p>Phone: +91 9876543210 | Email: info@salesavvy.com</p>
+          <p>Timezone: IST (Asia/Kolkata)</p>
         </div>
         
         <div class="bill-details">
@@ -92,7 +93,14 @@ const AdminOrders = () => {
           </div>
           <div class="bill-row">
             <span>Date:</span>
-            <span>${new Date(order.orderDate).toLocaleDateString()}</span>
+            <span>${new Date(order.orderDate).toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}</span>
           </div>
           <div class="bill-row">
             <span>Customer:</span>
@@ -352,14 +360,15 @@ const AdminOrders = () => {
                   <div className="order-main">
                     <h3 className="order-id">Order #{order.orderId}</h3>
                     <p className="order-date">
-                      <span className="info-icon">📅</span>
-                      {new Date(order.orderDate).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                        <span className="info-icon">📅</span>
+                        {new Date(order.orderDate).toLocaleString('en-IN', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZone: 'Asia/Kolkata'
+                        })}
                     </p>
                   </div>
                   

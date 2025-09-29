@@ -68,6 +68,47 @@ const AdminAnalytics = () => {
         }
     };
 
+    // If you have an AdminAnalytics component, update time calculations
+const calculateTimeAgo = (dateTime) => {
+    if (!dateTime) {
+        return "Recently";
+    }
+    
+    try {
+        const now = new Date();
+        const activityTime = new Date(dateTime);
+        
+        // Convert both to IST
+        const nowIST = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+        const activityTimeIST = new Date(activityTime.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+        
+        const diffMs = nowIST - activityTimeIST;
+        const diffSeconds = Math.floor(diffMs / 1000);
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffSeconds < 60) {
+            return "Just now";
+        } else if (diffMinutes < 60) {
+            return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+        } else if (diffHours < 24) {
+            return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+        } else if (diffDays < 7) {
+            return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+        } else {
+            return activityTimeIST.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'Asia/Kolkata'
+            });
+        }
+    } catch (error) {
+        return "Recently";
+    }
+};
+
     const fetchRecentActivities = async () => {
         try {
             setRefreshingActivities(true);

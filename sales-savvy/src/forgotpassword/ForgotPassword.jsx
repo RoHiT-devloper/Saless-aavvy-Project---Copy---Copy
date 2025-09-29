@@ -16,18 +16,18 @@ const ForgotPassword = () => {
 
   
   // Start countdown timer for OTP resend
-  const startCountdown = () => {
+const startCountdown = () => {
     setCountdown(60);
     const timer = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
-      });
+        setCountdown(prev => {
+            if (prev <= 1) {
+                clearInterval(timer);
+                return 0;
+            }
+            return prev - 1;
+        });
     }, 1000);
-  };
+};
 
 const handleSendOtp = async (e) => {
   e.preventDefault();
@@ -284,7 +284,11 @@ const handleSendOtp = async (e) => {
           <form onSubmit={handleVerifyOtp} className="forgot-password-form">
             <div className="input-group">
               <label htmlFor="otp">Verification Code</label>
-              <p className="otp-instructions">Enter the 6-digit code sent to {email}</p>
+              <div className="otp-instructions">
+                  Enter the 6-digit code sent to {email}
+                  <br />
+                  <small style={{color: '#666'}}>OTP valid for 10 minutes (IST)</small>
+              </div>
               <div className="otp-input-container">
                 <input
                   type="text"

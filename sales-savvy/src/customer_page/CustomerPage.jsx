@@ -321,10 +321,15 @@ const CustomerPage = () => {
     }, 250);
   };
 
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  };
+const formatDate = (dateString) => {
+    const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        timeZone: 'Asia/Kolkata'
+    };
+    return new Date(dateString).toLocaleDateString('en-IN', options);
+};
 
   if (loading) {
     return (
@@ -409,7 +414,16 @@ const CustomerPage = () => {
                   <div className="order-header">
                     <div className="order-info">
                       <h3>Order #{order.orderId}</h3>
-                      <p className="order-date">{formatDate(order.orderDate)}</p>
+                      <p className="order-date">
+                          {new Date(order.orderDate).toLocaleDateString('en-IN', { 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              timeZone: 'Asia/Kolkata'
+                          })}
+                      </p>
                     </div>
                     <div className="order-status">
                       <span className={`status-badge ${order.status.toLowerCase()}`}>

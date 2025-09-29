@@ -1,6 +1,7 @@
 package com.salesSavvy.entity;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -25,7 +26,7 @@ public class Users {
     private Cart cart;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 
     public Users() {}
 
@@ -39,6 +40,7 @@ public class Users {
         this.dob = dob;
         this.role = role;
         this.cart = cart;
+        this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
     }
 
     // Getters & Setters

@@ -2,6 +2,7 @@ package com.salesSavvy.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "reviews")
@@ -25,7 +26,7 @@ public class Review {
         this.productId = productId;
         this.rating = rating;
         this.comment = comment;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
     }
     
     // Getters and setters

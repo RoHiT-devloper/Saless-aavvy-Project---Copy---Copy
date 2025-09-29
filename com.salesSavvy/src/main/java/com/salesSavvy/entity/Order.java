@@ -2,6 +2,7 @@ package com.salesSavvy.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Entity
@@ -29,13 +30,13 @@ public class Order {
     
     // Enhanced constructor with customer details
     public Order(String orderId, String username, String customerName, String customerEmail, 
-                LocalDateTime orderDate, Double totalAmount, String status, 
+                Double totalAmount, String status, 
                 String shippingAddress, List<OrderItem> items) {
         this.orderId = orderId;
         this.username = username;
         this.customerName = customerName;
         this.customerEmail = customerEmail;
-        this.orderDate = orderDate;
+        this.orderDate = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
         this.totalAmount = totalAmount;
         this.status = status;
         this.shippingAddress = shippingAddress;

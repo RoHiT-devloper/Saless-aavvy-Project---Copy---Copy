@@ -164,7 +164,12 @@ const ProductReviews = ({ productId }) => {
                             </div>
                             <p className="review-comment">{review.comment}</p>
                             <span className="review-date">
-                                {new Date(review.createdAt).toLocaleDateString()}
+                                {new Date(review.createdAt).toLocaleDateString('en-IN', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    timeZone: 'Asia/Kolkata'
+                                })}
                             </span>
                         </div>
                     ))
