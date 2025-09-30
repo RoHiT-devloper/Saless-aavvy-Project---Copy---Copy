@@ -275,10 +275,12 @@
   overflow: hidden;
   min-height: 50vh;
   padding: 0rem;
+  
+  
 }
 
 .products-list.scrollable {
-  max-height: 340px;
+  max-height: 365px;
   overflow-y: auto;
   padding: 1rem;
 }
@@ -381,7 +383,7 @@
   padding: 1rem;
   background: var(--card-bg);
   border-top: 1px solid var(--border-light);
-  max-height: 10vb;
+  max-height: 0vb;
       
 }
 
