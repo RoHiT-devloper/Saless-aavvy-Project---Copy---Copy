@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./CustomerPage.css";
-import CartIcon from "../cart/CartIcon";
 
 const CustomerPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -270,6 +270,10 @@ const CustomerPage = () => {
     return wishlistItems.some(item => item.id === productId);
   };
 
+  const handleViewCart = () => {
+    navigate('/cart');
+  };
+
   // Notification system
   const showNotification = (message, type = 'info') => {
     const existingNotification = document.querySelector('.notification');
@@ -457,10 +461,8 @@ const formatDate = (dateString) => {
   }
 
   return (
-    <div className="customer-container">
-      <CartIcon />
-      
-      {/* Enhanced Welcome Header with Wishlist Icon */}
+    <div className="customer-container">      
+      {/* Enhanced Welcome Header with Wishlist and Cart Icons */}
       <div className="welcome-header">
         <div className="welcome-content">
           <h1 className="customer-title">
@@ -480,15 +482,29 @@ const formatDate = (dateString) => {
             </div>
           </div>
           
-          {/* Wishlist Icon */}
-          <div className="wishlist-icon-container" onClick={toggleWishlist}>
-            <div className="wishlist-icon">
-              ❤️
-              {wishlistItems.length > 0 && (
-                <span className="wishlist-count-badge">{wishlistItems.length}</span>
-              )}
+          {/* Action Icons Container */}
+          <div className="action-icons-container">
+            {/* Wishlist Icon */}
+            <div className="wishlist-icon-container" onClick={toggleWishlist}>
+              <div className="wishlist-icon">
+                ❤️
+                {wishlistItems.length > 0 && (
+                  <span className="wishlist-count-badge">{wishlistItems.length}</span>
+                )}
+              </div>
+              <span className="wishlist-label">Wishlist</span>
             </div>
-            <span className="wishlist-label">Wishlist</span>
+
+            {/* View Cart Button */}
+            <div className="view-cart-container" onClick={handleViewCart}>
+              <div className="view-cart-icon">
+                🛒
+                {cartItems.length > 0 && (
+                  <span className="cart-count-badge">{cartItems.length}</span>
+                )}
+              </div>
+              <span className="view-cart-label">View Cart</span>
+            </div>
           </div>
         </div>
       </div>
@@ -574,6 +590,7 @@ const formatDate = (dateString) => {
         </div>
       )}
 
+      {/* Rest of the component remains the same */}
       {/* Main Tabs */}
       <div className="customer-tabs">
         <button 
