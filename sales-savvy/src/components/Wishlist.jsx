@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import './Wishlist.css';
 
 const Wishlist = () => {
     const [wishlistItems, setWishlistItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [quantities, setQuantities] = useState({}); // Store quantities separately
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -21,13 +21,47 @@ const Wishlist = () => {
         try {
             const response = await fetch(`http://localhost:8080/api/wishlist/${username}`);
             if (response.ok) {
-                const data = await response.json();
-                setWishlistItems(data);
+                const products = await response.json();
+                setWishlistItems(products);
+                
+                // Fetch quantities for each product
+                const quantityPromises = products.map(product => 
+                    fetch(`http://localhost:8080/api/wishlist/quantity?username=${username}&productId=${product.id}`)
+                        .then(res => res.json())
+                        .then(data => ({ productId: product.id, quantity: data.quantity }))
+                );
+                
+                const quantityResults = await Promise.all(quantityPromises);
+                const quantityMap = {};
+                quantityResults.forEach(result => {
+                    quantityMap[result.productId] = result.quantity;
+                });
+                setQuantities(quantityMap);
             }
         } catch (error) {
             console.error('Error fetching wishlist:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const updateQuantity = async (productId, newQuantity) => {
+        const username = localStorage.getItem('username');
+        try {
+            const response = await fetch(
+                `http://localhost:8080/api/wishlist/update-quantity?username=${username}&productId=${productId}&quantity=${newQuantity}`,
+                { method: 'PUT' }
+            );
+
+            if (response.ok) {
+                // Update local state
+                setQuantities(prev => ({
+                    ...prev,
+                    [productId]: newQuantity
+                }));
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
         }
     };
 
@@ -41,6 +75,12 @@ const Wishlist = () => {
 
             if (response.ok) {
                 setWishlistItems(wishlistItems.filter(item => item.id !== productId));
+                // Remove from quantities state
+                setQuantities(prev => {
+                    const newQuantities = { ...prev };
+                    delete newQuantities[productId];
+                    return newQuantities;
+                });
             }
         } catch (error) {
             console.error('Error removing from wishlist:', error);
@@ -49,6 +89,8 @@ const Wishlist = () => {
 
     const addToCartFromWishlist = async (product) => {
         const username = localStorage.getItem('username');
+        const quantity = quantities[product.id] || 1;
+        
         try {
             const response = await fetch("http://localhost:8080/addToCart", {
                 method: "POST",
@@ -56,7 +98,7 @@ const Wishlist = () => {
                 body: JSON.stringify({
                     productId: product.id,
                     username: username,
-                    quantity: 1,
+                    quantity: quantity,
                 }),
             });
 
@@ -67,6 +109,12 @@ const Wishlist = () => {
         } catch (error) {
             console.error('Error adding to cart:', error);
         }
+    };
+
+    const handleQuantityChange = (productId, change) => {
+        const currentQuantity = quantities[productId] || 1;
+        const newQuantity = Math.max(1, currentQuantity + change);
+        updateQuantity(productId, newQuantity);
     };
 
     if (loading) {
@@ -101,13 +149,34 @@ const Wishlist = () => {
                                 <h4>{product.name}</h4>
                                 <p className="price">Rs.{product.price}</p>
                                 <p className="category">{product.category}</p>
+                                
+                                {/* NEW: Quantity Controls */}
+                                <div className="quantity-controls">
+                                    <label>Quantity:</label>
+                                    <div className="quantity-selector">
+                                        <button 
+                                            onClick={() => handleQuantityChange(product.id, -1)}
+                                            className="quantity-btn"
+                                            disabled={(quantities[product.id] || 1) <= 1}
+                                        >
+                                            -
+                                        </button>
+                                        <span className="quantity-display">{quantities[product.id] || 1}</span>
+                                        <button 
+                                            onClick={() => handleQuantityChange(product.id, 1)}
+                                            className="quantity-btn"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             <div className="wishlist-actions">
                                 <button 
                                     onClick={() => addToCartFromWishlist(product)}
                                     className="add-to-cart-btn"
                                 >
-                                    Add to Cart
+                                    Add to Cart ({(quantities[product.id] || 1)})
                                 </button>
                                 <button 
                                     onClick={() => removeFromWishlist(product.id)}

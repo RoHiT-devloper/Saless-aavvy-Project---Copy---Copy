@@ -1,3 +1,4 @@
+// /com.salesSavvy/src/main/java/com/salesSavvy/repository/WishlistRepository.java
 package com.salesSavvy.repository;
 
 import com.salesSavvy.entity.Wishlist;

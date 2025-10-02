@@ -81,10 +81,10 @@ const Show_All_Product = () => {
 
     if (isLoading) {
         return (
-            <div className="products-container">
+            <div className="show-all-products-container">
                 <div className="products-loading">
                     <div className="loading-spinner"></div>
-                    <p>Loading products...</p>
+                    <p>Loading products catalog...</p>
                 </div>
             </div>
         );
@@ -92,10 +92,13 @@ const Show_All_Product = () => {
 
     if (error) {
         return (
-            <div className="products-container">
+            <div className="show-all-products-container">
                 <div className="products-error">
+                    <div className="error-icon">⚠️</div>
+                    <h3>Failed to Load Products</h3>
                     <p>{error}</p>
                     <button onClick={handleRetry} className="retry-button">
+                        <span className="button-icon">🔄</span>
                         Try Again
                     </button>
                 </div>
@@ -104,96 +107,168 @@ const Show_All_Product = () => {
     }
 
     return (
-        <div className="products-container">
-            <h1 className="products-title">All Products</h1>
-            
-            <div className="products-controls">
-                <div className="search-box">
-                    <input
-                        type="text"
-                        placeholder="Search products..."
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        className="search-input"
-                    />
+        <div className="show-all-products-container">
+            {/* Header Section */}
+            <div className="products-header">
+                <div className="header-content">
+                    <h1 className="products-title">
+                        <span className="title-icon">📦</span>
+                        Product Catalog
+                    </h1>
+                    <p className="header-subtitle">Browse and explore our complete product collection</p>
                 </div>
-                
-                <div className="filter-box">
-                    <select
-                        value={selectedCategory}
-                        onChange={handleCategoryChange}
-                        className="category-filter"
-                    >
-                        {categories.map(category => (
-                            <option key={category} value={category}>
-                                {category === "all" ? "All Categories" : category}
-                            </option>
+                <div className="header-stats">
+                    <div className="stat-item">
+                        <span className="stat-number">{products.length}</span>
+                        <span className="stat-label">Total Products</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-number">{filteredProducts.length}</span>
+                        <span className="stat-label">Showing</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Search and Filter Section */}
+            <div className="products-controls-section">
+                <div className="controls-container">
+                    <div className="search-container">
+                        <div className="search-box">
+                            <span className="search-icon">🔍</span>
+                            <input
+                                type="text"
+                                placeholder="Search products by name, description, or category..."
+                                value={searchTerm}
+                                onChange={handleSearchChange}
+                                className="search-input"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="filter-container">
+                        <div className="filter-box">
+                            <span className="filter-icon">📂</span>
+                            <select
+                                value={selectedCategory}
+                                onChange={handleCategoryChange}
+                                className="category-filter"
+                            >
+                                {categories.map(category => (
+                                    <option key={category} value={category}>
+                                        {category === "all" ? "All Categories" : category}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Results Summary */}
+                <div className="results-summary">
+                    <p>
+                        Showing <strong>{filteredProducts.length}</strong> of <strong>{products.length}</strong> products
+                        {searchTerm && ` for "${searchTerm}"`}
+                        {selectedCategory !== "all" && ` in ${selectedCategory}`}
+                    </p>
+                </div>
+            </div>
+
+            {/* Products Grid */}
+            {filteredProducts.length === 0 ? (
+                <div className="products-empty">
+                    <div className="empty-state">
+                        <div className="empty-icon">🔍</div>
+                        <h3>No Products Found</h3>
+                        <p>
+                            {searchTerm || selectedCategory !== "all" 
+                                ? "Try adjusting your search or filter criteria" 
+                                : "No products available in the catalog"
+                            }
+                        </p>
+                        {(searchTerm || selectedCategory !== "all") && (
+                            <button 
+                                onClick={() => {
+                                    setSearchTerm("");
+                                    setSelectedCategory("all");
+                                }} 
+                                className="clear-filters-btn"
+                            >
+                                <span className="button-icon">🔄</span>
+                                Clear Filters
+                            </button>
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div className="products-grid-container">
+                    <div className="products-grid">
+                        {filteredProducts.map(product => (
+                            <div key={product.id} className="product-card">
+                                {/* Product Image */}
+                                <div className="product-image">
+                                    {product.photo ? (
+                                        <img 
+                                            src={product.photo} 
+                                            alt={product.name}
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                                e.target.nextSibling.style.display = 'flex';
+                                            }}
+                                        />
+                                    ) : null}
+                                    <div 
+                                        className="image-placeholder"
+                                        style={{display: product.photo ? 'none' : 'flex'}}
+                                    >
+                                        <span className="placeholder-icon">📷</span>
+                                        <span className="placeholder-text">No Image</span>
+                                    </div>
+                                </div>
+
+                                {/* Product Info */}
+                                <div className="product-info">
+                                    <div className="product-header">
+                                        <span className="product-id">#{product.id}</span>
+                                        <h3 className="product-name">{product.name}</h3>
+                                    </div>
+                                    
+                                    <div className="product-price">Rs.{product.price}</div>
+                                    
+                                    <div className="product-category">
+                                        {product.category}
+                                    </div>
+                                    
+                                    <p className="product-description">
+                                        {product.description}
+                                    </p>
+
+                                    {/* Reviews Section */}
+                                    {product.reviews && product.reviews.length > 0 && (
+                                        <div className="product-reviews">
+                                            <div className="reviews-header">
+                                                <span className="reviews-icon">⭐</span>
+                                                <span className="reviews-count">Reviews ({product.reviews.length})</span>
+                                            </div>
+                                            <div className="reviews-list">
+                                                {product.reviews.slice(0, 2).map((review, index) => (
+                                                    <div key={index} className="review-item">
+                                                        "{review}"
+                                                    </div>
+                                                ))}
+                                                {product.reviews.length > 2 && (
+                                                    <div className="review-more">
+                                                        +{product.reviews.length - 2} more reviews
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         ))}
-                    </select>
+                    </div>
                 </div>
-            </div>
-
-            <div className="products-summary">
-                <p>Showing {filteredProducts.length} of {products.length} products</p>
-            </div>
-
-           {filteredProducts.length === 0 ? (
-  <div className="products-empty">
-    <p>No products found{searchTerm || selectedCategory !== "all" ? " matching your criteria" : ""}.</p>
-  </div>
-) : (
-  // NEW WRAPPER ADDED
-  <div className="products-contains">
-    <div className="products-grids">
-      {filteredProducts.map(product => (
-        <div key={product.id} className="product-card">
-          {product.photo ? (
-            <div className="product-image">
-              <img 
-                src={product.photo} 
-                alt={product.name}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
-                }}
-              />
-            </div>
-          ) : (
-            <div className="product-image">
-              <div className="image-placeholder">No Image</div>
-            </div>
-          )}
-
-          <div className="product-details">
-            <h3 className="product-name">{product.name}</h3>
-            <p className="product-price">${product.price}</p>
-            <p className="product-category">{product.category}</p>
-            <p className="product-description">{product.description}</p>
-            
-            {product.reviews && product.reviews.length > 0 && (
-              <div className="product-reviews">
-                <h4>Reviews ({product.reviews.length})</h4>
-                <ul>
-                  {product.reviews.slice(0, 2).map((review, index) => (
-                    <li key={index} className="review-item">
-                      "{review}"
-                    </li>
-                  ))}
-                  {product.reviews.length > 2 && (
-                    <li className="review-more">
-                      +{product.reviews.length - 2} more reviews
-                    </li>
-                  )}
-                </ul>
-              </div>
             )}
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
         </div>
     );
 };

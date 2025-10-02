@@ -17,6 +17,7 @@ const CustomerPage = () => {
   const [orderHistoryLoading, setOrderHistoryLoading] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [wishlistItems, setWishlistItems] = useState([]);
+  const [wishlistQuantities, setWishlistQuantities] = useState({});
   const [showWishlist, setShowWishlist] = useState(false);
 
   // Check theme preference on component mount
@@ -60,12 +61,52 @@ const CustomerPage = () => {
     try {
       const response = await fetch(`http://localhost:8080/api/wishlist/${username}`);
       if (response.ok) {
-        const data = await response.json();
-        setWishlistItems(data);
+        const products = await response.json();
+        setWishlistItems(products);
+        
+        // Fetch quantities for each product
+        const quantityPromises = products.map(product => 
+          fetch(`http://localhost:8080/api/wishlist/quantity?username=${username}&productId=${product.id}`)
+            .then(res => res.json())
+            .then(data => ({ productId: product.id, quantity: data.quantity }))
+        );
+        
+        const quantityResults = await Promise.all(quantityPromises);
+        const quantityMap = {};
+        quantityResults.forEach(result => {
+          quantityMap[result.productId] = result.quantity;
+        });
+        setWishlistQuantities(quantityMap);
       }
     } catch (error) {
       console.error('Error fetching wishlist:', error);
     }
+  };
+
+  const updateWishlistQuantity = async (productId, newQuantity) => {
+    const username = localStorage.getItem("username");
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/wishlist/update-quantity?username=${username}&productId=${productId}&quantity=${newQuantity}`,
+        { method: 'PUT' }
+      );
+
+      if (response.ok) {
+        // Update local state
+        setWishlistQuantities(prev => ({
+          ...prev,
+          [productId]: newQuantity
+        }));
+      }
+    } catch (error) {
+      console.error('Error updating wishlist quantity:', error);
+    }
+  };
+
+  const handleWishlistQuantityChange = (productId, change) => {
+    const currentQuantity = wishlistQuantities[productId] || 1;
+    const newQuantity = Math.max(1, currentQuantity + change);
+    updateWishlistQuantity(productId, newQuantity);
   };
 
   const fetchOrderHistory = async () => {
@@ -225,6 +266,12 @@ const CustomerPage = () => {
 
       if (response.ok) {
         setWishlistItems(wishlistItems.filter(item => item.id !== productId));
+        // Remove from quantities state
+        setWishlistQuantities(prev => {
+          const newQuantities = { ...prev };
+          delete newQuantities[productId];
+          return newQuantities;
+        });
         showNotification('Item removed from wishlist', 'success');
       }
     } catch (error) {
@@ -235,26 +282,26 @@ const CustomerPage = () => {
 
   const addToCartFromWishlist = async (product) => {
     const username = localStorage.getItem("username");
+    const quantity = wishlistQuantities[product.id] || 1;
+    
     if (!username) {
       showNotification("Please log in to add to cart", "error");
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/cart/add", {
+      const response = await fetch("http://localhost:8080/addToCart", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: product.id,
           username: username,
-          quantity: 1,
+          quantity: quantity,
         }),
       });
 
       if (response.ok) {
-        showNotification(`Added ${product.name} to cart!`, "success");
+        showNotification(`Added ${product.name} (x${quantity}) to cart!`, "success");
         removeFromWishlist(product.id);
         fetchCartItems();
       } else {
@@ -540,36 +587,65 @@ const formatDate = (dateString) => {
                 </div>
               ) : (
                 <div className="wishlist-popup-items">
-                  {wishlistItems.map(product => (
-                    <div key={product.id} className="wishlist-popup-item">
-                      <div className="popup-product-image">
-                        {product.photo ? (
-                          <img src={product.photo} alt={product.name} />
-                        ) : (
-                          <div className="image-placeholder">📷</div>
-                        )}
+                  {wishlistItems.map(product => {
+                    const quantity = wishlistQuantities[product.id] || 1;
+                    const total = quantity * product.price;
+                    
+                    return (
+                      <div key={product.id} className="wishlist-popup-item">
+                        <div className="popup-product-image">
+                          {product.photo ? (
+                            <img src={product.photo} alt={product.name} />
+                          ) : (
+                            <div className="image-placeholder">📷</div>
+                          )}
+                        </div>
+                        <div className="popup-product-details">
+                          <h5>{product.name}</h5>
+                          <p className="popup-price">Rs.{product.price}</p>
+                          <p className="popup-category">{product.category}</p>
+                          
+                          {/* NEW: Quantity Controls in Wishlist Popup */}
+                          <div className="popup-quantity-controls">
+                            <label>Quantity:</label>
+                            <div className="popup-quantity-selector">
+                              <button 
+                                onClick={() => handleWishlistQuantityChange(product.id, -1)}
+                                className="popup-quantity-btn"
+                                disabled={quantity <= 1}
+                              >
+                                -
+                              </button>
+                              <span className="popup-quantity-display">{quantity}</span>
+                              <button 
+                                onClick={() => handleWishlistQuantityChange(product.id, 1)}
+                                className="popup-quantity-btn"
+                              >
+                                +
+                              </button>
+                            </div>
+                            <div className="popup-total-price">
+                              Total: Rs.{total}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="popup-actions">
+                          <button 
+                            onClick={() => addToCartFromWishlist(product)}
+                            className="popup-add-to-cart-btn"
+                          >
+                            Add to Cart ({quantity})
+                          </button>
+                          <button 
+                            onClick={() => removeFromWishlist(product.id)}
+                            className="popup-remove-btn"
+                          >
+                            Remove
+                          </button>
+                        </div>
                       </div>
-                      <div className="popup-product-details">
-                        <h5>{product.name}</h5>
-                        <p className="popup-price">Rs.{product.price}</p>
-                        <p className="popup-category">{product.category}</p>
-                      </div>
-                      <div className="popup-actions">
-                        <button 
-                          onClick={() => addToCartFromWishlist(product)}
-                          className="popup-add-to-cart-btn"
-                        >
-                          Add to Cart
-                        </button>
-                        <button 
-                          onClick={() => removeFromWishlist(product.id)}
-                          className="popup-remove-btn"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

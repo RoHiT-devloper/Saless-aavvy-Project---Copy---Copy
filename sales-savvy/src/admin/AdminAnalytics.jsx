@@ -241,6 +241,7 @@ const calculateTimeAgo = (dateTime) => {
                     </select>
                     <button className="refresh-btn" onClick={fetchAnalytics} title="Refresh Data">
                         <i className="fas fa-sync-alt"></i>
+                        <span>Refresh Button</span>
                     </button>
                 </div>
             </div>
@@ -397,9 +398,6 @@ const calculateTimeAgo = (dateTime) => {
                                         >
                                             <div className="order-column order-id">
                                                 <span className="order-id-text">#{orderId}</span>
-                                                <span className="order-message-count">
-                                                    💬{order.messageCount || 0}
-                                                </span>
                                             </div>
                                             
                                             <div className="order-column customer">

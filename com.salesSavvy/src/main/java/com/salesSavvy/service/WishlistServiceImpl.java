@@ -1,3 +1,4 @@
+// /com.salesSavvy/src/main/java/com/salesSavvy/service/WishlistServiceImpl.java
 package com.salesSavvy.service;
 
 import com.salesSavvy.entity.Product;
@@ -18,6 +19,7 @@ public class WishlistServiceImpl implements WishlistService {
     @Autowired
     private ProductRepository productRepository;
     
+    // KEEP all existing methods exactly as they are
     @Override
     public Wishlist getOrCreateWishlist(String username) {
         Optional<Wishlist> existingWishlist = wishlistRepository.findByUsername(username);
@@ -35,6 +37,8 @@ public class WishlistServiceImpl implements WishlistService {
         
         if (!wishlist.getProducts().contains(product)) {
             wishlist.getProducts().add(product);
+            // Set default quantity to 1
+            wishlist.getProductQuantities().put(productId, 1);
             return wishlistRepository.save(wishlist);
         }
         
@@ -48,6 +52,7 @@ public class WishlistServiceImpl implements WishlistService {
             .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         
         wishlist.getProducts().remove(product);
+        wishlist.getProductQuantities().remove(productId);
         return wishlistRepository.save(wishlist);
     }
     
@@ -60,5 +65,22 @@ public class WishlistServiceImpl implements WishlistService {
     @Override
     public boolean isProductInWishlist(String username, Long productId) {
         return wishlistRepository.existsByUsernameAndProductsId(username, productId);
+    }
+    
+    // NEW: Add only quantity methods
+    @Override
+    public Wishlist updateQuantity(String username, Long productId, int quantity) {
+        Wishlist wishlist = getOrCreateWishlist(username);
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        
+        wishlist.updateProductQuantity(product, quantity);
+        return wishlistRepository.save(wishlist);
+    }
+    
+    @Override
+    public Integer getProductQuantity(String username, Long productId) {
+        Wishlist wishlist = getOrCreateWishlist(username);
+        return wishlist.getProductQuantity(productId);
     }
 }

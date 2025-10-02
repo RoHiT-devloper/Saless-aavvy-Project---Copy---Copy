@@ -1,3 +1,4 @@
+// /com.salesSavvy/src/main/java/com/salesSavvy/controller/WishlistController.java
 package com.salesSavvy.controller;
 
 import com.salesSavvy.entity.Product;
@@ -15,6 +16,7 @@ public class WishlistController {
     @Autowired
     private WishlistService wishlistService;
     
+    // KEEP all existing endpoints
     @GetMapping("/{username}")
     public List<Product> getWishlist(@PathVariable String username) {
         return wishlistService.getWishlistProducts(username);
@@ -45,6 +47,30 @@ public class WishlistController {
         try {
             boolean inWishlist = wishlistService.isProductInWishlist(username, productId);
             return ResponseEntity.ok(Map.of("inWishlist", inWishlist));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    // NEW: Add only quantity endpoint
+    @PutMapping("/update-quantity")
+    public ResponseEntity<?> updateQuantity(@RequestParam String username, 
+                                          @RequestParam Long productId,
+                                          @RequestParam int quantity) {
+        try {
+            var wishlist = wishlistService.updateQuantity(username, productId, quantity);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Quantity updated"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    // NEW: Get product quantity
+    @GetMapping("/quantity")
+    public ResponseEntity<?> getProductQuantity(@RequestParam String username, @RequestParam Long productId) {
+        try {
+            Integer quantity = wishlistService.getProductQuantity(username, productId);
+            return ResponseEntity.ok(Map.of("quantity", quantity));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

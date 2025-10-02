@@ -26,6 +26,9 @@
   --order-card-bg: #ffffff;
   --order-card-text: #2c3e50;
   --order-card-border: #e0e0e0;
+  --analytics-card-bg: #ffffff;
+  --analytics-card-text: #2c3e50;
+  --analytics-card-border: #e0e0e0;
 }
 
 [data-theme="dark"] {
@@ -50,6 +53,9 @@
   --order-card-bg: #2d3748;
   --order-card-text: #ffffff;
   --order-card-border: #4a5568;
+  --analytics-card-bg: #2d3748;
+  --analytics-card-text: #ffffff;
+  --analytics-card-border: #4a5568;
 }
 
 /* Base Styles */
@@ -171,6 +177,12 @@
   color: var(--order-card-text);
 }
 
+.analytics-card {
+  border-left: 6px solid #f59f00;
+  background: var(--analytics-card-bg);
+  color: var(--analytics-card-text);
+}
+
 /* Card Icon Styles */
 .admin-card-icon {
   font-size: 3rem;
@@ -200,6 +212,10 @@
 
 .order-management-card .admin-card-icon {
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+}
+
+.analytics-card .admin-card-icon {
+  background: linear-gradient(135deg, #f59f00 0%, #e67700 100%);
 }
 
 /* Card Title Styles */
@@ -264,6 +280,10 @@
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
 }
 
+.analytics-card:hover .admin-card-cta {
+  background: linear-gradient(135deg, #f59f00 0%, #e67700 100%);
+}
+
 /* Animations */
 @keyframes fadeInUp {
   from {
@@ -284,6 +304,7 @@
 .user-management-card { animation-delay: 0.1s; }
 .product-management-card { animation-delay: 0.2s; }
 .order-management-card { animation-delay: 0.3s; }
+.analytics-card { animation-delay: 0.4s; }
 
 /* Responsive Design */
 @media (max-width: 1024px) {
@@ -357,6 +378,7 @@
 .fas.fa-users::before { content: "👥"; font-family: initial; }
 .fas.fa-box::before { content: "📦"; font-family: initial; }
 .fas.fa-shopping-cart::before { content: "🛒"; font-family: initial; }
+.fas.fa-chart-line::before { content: "📊"; font-family: initial; }
 .fas.fa-arrow-right::before { content: "→"; font-family: initial; font-weight: bold; }
 
 /* Additional hover effects */
