@@ -25,6 +25,7 @@ import ProductReviews from './components/ProductReviews';
 import Wishlist from './components/Wishlist';
 import AddressManager from './components/AddressManager';
 import AdminAnalytics from './admin/AdminAnalytics';
+import IndexPage from './pages/IndexPage';
 
 function App() {
   const location = useLocation();
@@ -41,7 +42,8 @@ function App() {
       <div className="app-content">
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<Welcome />} />
+          <Route path="/" element={<IndexPage />} />
+          <Route path="/welcome" element={<Welcome />} />
           <Route path="/signin" element={<Sign_in />} />
           <Route path="/signup" element={<Sign_up />} />
           <Route path="/access-denied" element={<AccessDenied />} />
