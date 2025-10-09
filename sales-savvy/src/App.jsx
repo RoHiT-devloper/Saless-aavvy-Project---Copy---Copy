@@ -42,8 +42,8 @@ function App() {
       <div className="app-content">
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<IndexPage />} />
-          <Route path="/welcome" element={<Welcome />} />
+          {/* <Route path="/" element={<IndexPage />} /> */}
+          <Route path="/" element={<Welcome />} />
           <Route path="/signin" element={<Sign_in />} />
           <Route path="/signup" element={<Sign_up />} />
           <Route path="/access-denied" element={<AccessDenied />} />
