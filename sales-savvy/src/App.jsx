@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Sign_in from "./pages/Sign_in";
@@ -12,13 +11,14 @@ import View_User from './user/View_User';
 import Show_All_Product from './productmanager/Show_All_Product';
 import Search_Product from './productmanager/Search_Product';
 import Product_Manager from './admin/Product_Manager';
-import Admin_home from './admin/Admin_home';
+import Admin_home from './admin/Admin_Home';
 import Delete_User from './user/Delete_User';
 import Header from './header/Header';
 import User_Management from './user/User_Management';
 import CartPage from './cart/CartPage';
+import ProtectedRoute from './utils/ProtectedRoute';
 import AccessDenied from './pages/AccessDenied';
-import './app.css';
+import './App.css';
 import ForgotPassword from './forgotpassword/ForgotPassword';
 import AdminOrders from './pages/AdminOrders';
 import ProductReviews from './components/ProductReviews';
@@ -31,7 +31,7 @@ function App() {
   const location = useLocation();
   
   // Define paths where header should NOT be shown
-  const noHeaderPaths = ['/', '/signin', '/signup', '/access-denied', '/welcome'];
+  const noHeaderPaths = ['/', '/signin', '/signup', '/access-denied'];
   const showHeader = !noHeaderPaths.includes(location.pathname);
 
   return (
@@ -49,27 +49,142 @@ function App() {
           <Route path="/access-denied" element={<AccessDenied />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* Customer Routes - Now Public */}
-          <Route path="/customer" element={<Customer_home />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/addresses" element={<AddressManager />} />
+          {/* Customer Routes - Protected */}
+          <Route 
+            path="/customer" 
+            element={
+              <ProtectedRoute requiredRole="customer">
+                <Customer_home />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/cart" 
+            element={
+              <ProtectedRoute requiredRole="customer">
+                <CartPage />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+              path="/wishlist" 
+              element={
+                  <ProtectedRoute requiredRole="customer">
+                      <Wishlist />
+                  </ProtectedRoute>
+              } 
+          />
+          <Route 
+              path="/addresses" 
+              element={
+                  <ProtectedRoute requiredRole="customer">
+                      <AddressManager />
+                  </ProtectedRoute>
+              } 
+          />
                     
-          {/* Admin Routes - Now Public */}
-          <Route path="/admin" element={<Admin_home />} />
-          <Route path="/admin/analytics" element={<AdminAnalytics />} />
-          <Route path="/admin/orders" element={<AdminOrders />} />
-          <Route path="/productManager" element={<Product_Manager />} />
-          <Route path="/addProduct" element={<Add_Product />} />
-          <Route path="/deleteProduct" element={<Delete_Product />} />
-          <Route path="/updateProduct" element={<Update_Product />} />
-          <Route path="/showAllProducts" element={<Show_All_Product />} />
-          <Route path="/searchProduct" element={<Search_Product />} />
-          <Route path="/userManagement" element={<User_Management />} />
-          <Route path="/show-users" element={<View_User />} />
-          <Route path="/delete-users" element={<Delete_User />} />
-          <Route path="/product/:id/reviews" element={<ProductReviews />} />
-          
+          {/* Admin Routes - Protected */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Admin_home />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+              path="/admin/analytics" 
+              element={
+                  <ProtectedRoute requiredRole="admin">
+                      <AdminAnalytics />
+                  </ProtectedRoute>
+              } 
+          />
+          <Route 
+              path="/admin/orders" 
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminOrders />
+                </ProtectedRoute>
+              } 
+            />
+          <Route 
+            path="/productManager" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Product_Manager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/addProduct" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Add_Product />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/deleteProduct" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Delete_Product />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/updateProduct" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Update_Product />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/showAllProducts" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Show_All_Product />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/searchProduct" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Search_Product />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/userManagement" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <User_Management />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/show-users" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <View_User />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/delete-users" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Delete_User />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+              path="/product/:id/reviews" 
+              element={<ProductReviews />} 
+          />
           {/* Catch all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
